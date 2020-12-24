@@ -4,7 +4,7 @@
 @{String mayBeDisabled = hasPermission ? "" : "disabled"}
 
 <div @if(!hasPermission) { class="disabled-link" title='@i18n("permission_denied")' }>
-    <table class="table table-hover">
+    <table class="[ table table-hover table-vehicleList ]">
         <thead>
         <tr>
             <th style="width: 24px; font-weight: normal !important;">

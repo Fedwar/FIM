@@ -18,38 +18,38 @@
 		height: 25px;
 		opacity: 0.5;
 	}
-	
+
 	.vehicle-icon.diagnostic-error {
 		background-image: url(/img/diagnostic_error.png);
 	}
-	
+
 	.vehicle-icon.connection-ok {
 		background-image: url(/img/connection_ok.png);
 	}
-	
+
 	.vehicle-icon.connection-unstable {
 		background-image: url(/img/connection_warn.png);
 	}
-	
+
 	.vehicle-icon.connection-lost {
 		background-image: url(/img/connection_error.png);
 	}
-	
+
 	tr.vehicle td {
 		transition: all 0.5s;
 		vertical-align: middle !important;
 	}
-	
+
 	tr.vehicle.hidden td {
 		border-top: 0px;
 		padding-top: 0px;
 		padding-bottom: 0px;
 	}
-	
+
 	#vehicle-search.active {
 		background: #dff0d8;
 	}
-	
+
 	.vehicle-category h2 {
 		margin-bottom: 10px;
 	}
@@ -342,7 +342,7 @@
                     @i18n("vehicle_list.assign_dialog.title")
                 </h4>
             </div>
-            <div class="modal-body">
+            <div class="[ modal-body modal-body--vehicleDialog ]">
                 @if (vehicleList.getVehicleGroupMap().isEmpty()) {
                 @i18n("vehicle_list.assign_dialog.no_vehicles")
                 @{assignEnabled = false;}
