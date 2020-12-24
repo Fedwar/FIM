@@ -1,0 +1,80 @@
+@import fleetmanagement.frontend.model.*;
+@import fleetmanagement.frontend.security.SecurityRole;
+@extends(main, activeNavigation: "/admin")
+@args Admin vm, String activeSidebarItem
+
+<style>
+	.download-icon {
+		vertical-align: middle;
+		margin-right: 10px;
+	}
+	
+	.section {
+		margin-bottom: 50px;
+	}
+</style>
+
+@def renderMenuItem(String url, String intKey) {
+	@assign("name"){@i18n(intKey)}
+	@if (activeSidebarItem.equalsIgnoreCase(intKey)) {
+		<a href="@url" class="active">@name</a>
+	} else {
+		<a href="@url">@name</a>
+	}
+}
+
+@section(sidebar) {
+
+	<h2>@i18n("general_actions")</h2>
+	@renderMenuItem("/admin/logs-page", "admin_logs")
+	<hr>
+	<h2>@i18n("admin_settings")</h2>
+
+	@restricted_link(security.hasGarbageCollectionPermission) {
+		@renderMenuItem("/admin/gc", "admin_garbage_collector")
+	}
+
+	@if (vm.getLicence().isAutoPackageSyncAvailable()) {
+		@restricted_link(security.hasAutoPackageSyncPermission) {
+			@renderMenuItem("/admin/auto-sync", "admin_autosync")
+		}
+	}
+
+	@restricted_link(security.hasAddOnsPermission) {
+		@renderMenuItem("/licence", "licence_title")
+	}
+
+	@if (vm.getLicence().isUploadAvailable()) {
+		@restricted_link(security.hasFiltersEditPermission) {
+			@renderMenuItem("/admin/upload-filter", "ad_filter_admin_link")
+		}
+	}
+
+	@if (vm.getLicence().isNotificationsAvailable()) {
+		@restricted_link(security.hasEmailNotificationsPermission) {
+			@renderMenuItem("/admin/notifications", "notif_link")
+		}
+	}
+	
+	@if (vm.licence.isHttpsAvailable()) {
+		@restricted_link(security.hasInterfacesActionsPermission) {
+			@renderMenuItem("/https", "protocol_config_title")
+		}
+	}
+
+	@restricted_link(security.hasSettingsPermission) {
+		@renderMenuItem("/settings", "settings_link")
+	}
+
+<!-- TODO preprocessing temporary disabled -->
+<!--	@restricted_link(security.hasPackagePreprocessingPermission) {-->
+<!--		@renderMenuItem("/preprocess-settings", "preprocess_link")-->
+<!--	}-->
+
+}
+
+@if (vm.licence.isExpired()) {
+	<div class="alert alert-danger">@i18n("licence_expired")</div>
+}
+
+@render()

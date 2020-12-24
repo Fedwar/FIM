@@ -1,0 +1,22 @@
+div.status-icon {
+    width: 24px;
+    height: 24px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+div.Running {
+    background: url(/img/hourglass.png);
+}
+
+div.Finished {
+    background: url(/img/success.png);
+}
+
+div.Cancelled {
+    background: url(/img/stopped.png);
+}
+
+div.Failed {
+    background: url(/img/error.png);
+}

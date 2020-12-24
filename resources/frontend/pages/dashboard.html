@@ -1,0 +1,13 @@
+@import fleetmanagement.frontend.model.*;
+@args Dashboard vm
+@extends(main, activeNavigation: "/dashboard")
+
+<div id="dashboard-data" data-url="/ajax/dashboard">
+	@invoke("dashboard-template", vm)
+</div>
+
+<script>
+	@invoke("autoUpdate.js", "dashboard-data" )
+</script>
+
+

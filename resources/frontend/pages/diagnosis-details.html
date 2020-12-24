@@ -1,0 +1,66 @@
+@import fleetmanagement.frontend.model.*
+@args DiagnosisDetails vm
+@extends(main, activeNavigation: "/vehicles")
+<style>
+	.collapse-expand {
+		text-align: right;
+		width: 16px;
+	}
+	
+	.collapsed .caret {
+		transform: rotate(-90deg);
+	}
+	
+	.device.collapsed {
+		display: none;
+	}
+
+	.td-status {
+		padding: 0px !important;
+	}
+	.status {
+		padding: 5px !important;
+	}
+
+	.device-group {
+		cursor: pointer;
+	}
+	.toggle-button-all {
+		cursor: pointer;
+	}
+</style>
+
+@section(sidebar) {
+	<h2>@i18n("general_view")</h2>
+	<a href='/vehicles/@vm.vehicleId'>@i18n("diagnosis_details_vehicle_details")</a>
+}
+
+@if (!vm.licence.isDiagnosisInfoAvailable()) {
+<p>@i18n("licence_diagnosis_addon_no_licence")</p>
+@return
+}
+
+<div id="diagnosis-data" data-url="/vehicles/@vm.vehicleId/ajax/diagnosis">
+	@invoke("diagnosis-details-template", vm)
+</div>
+
+<script>
+	$(document).ready(function() {
+		$("#diagnosis-data").attr("data-url", window.location.pathname + "/ajax");
+    });
+
+	@invoke("diagnosis-details.js")
+	@invoke("autoUpdate.js", "diagnosis-data" )
+
+	function afterUpdate() {
+		restoreCollapsedState();
+	};
+
+	$(document).ready(function() {
+		initCollapsedState();
+	});
+</script>
+
+
+	
+	

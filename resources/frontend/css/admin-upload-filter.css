@@ -1,0 +1,111 @@
+.btn {
+    padding: 4px 8px;
+}
+
+.head-button {
+    float: right;
+    margin-left: 8px;
+    padding: 6px 12px;
+}
+
+.pattern-example {
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.conditionsPanel {
+    margin-top: 10px;
+}
+
+.input-plaintext{
+    background-color: white;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.filter-field {
+    display: inline-block;
+    padding-bottom: 4px;
+    width: 100%;
+}
+
+.filter-field label {
+    margin: 0px;
+    padding-right: 6px;
+    float: left;
+}
+
+.conditions td{
+    border: 0 !important;
+}
+
+.conditions{
+    margin-bottom: 0px;
+}
+
+.panel{
+   margin-bottom: 0px;
+}
+
+.filterPanel {
+   margin-bottom: 30px;
+}
+
+.panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+}
+
+.blue {
+    color: blue;
+}
+.red {
+    color: red;
+}
+.alert {
+    display: none;
+}
+
+.checkbox label:after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.checkbox .cr {
+  position: relative;
+  display: inline-block;
+  border: 1px solid #a9a9a9;
+  border-radius: .25em;
+  width: 1.3em;
+  height: 1.3em;
+  float: left;
+  margin-right: .5em;
+}
+
+.checkbox .cr .cr-icon {
+  position: absolute;
+  font-size: .8em;
+  line-height: 0;
+  top: 50%;
+  left: 15%;
+}
+
+.checkbox label input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox label input[type="checkbox"]+.cr>.cr-icon {
+  opacity: 0;
+}
+
+.checkbox label input[type="checkbox"]:checked+.cr>.cr-icon {
+  opacity: 1;
+}
+
+.checkbox label input[type="checkbox"]:disabled+.cr {
+  opacity: .5;
+}

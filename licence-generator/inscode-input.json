@@ -1,0 +1,29 @@
+{
+	"date": null,
+	"vehicles": 20,
+	"geo": true,
+	"vehicleGeo": true,
+	"packages": [
+		"data_supply", 
+		"remote_copystick", 
+		"remote_copystick",  
+		"indis5_multimedia_content",
+		"indis3_multimedia_content",
+		"xcc_enno_seat_reservation",
+		"oebb_digital_content",
+		"passenger_tv_content",
+		"client_config"
+	],
+	"diagnosis": true,
+	"operation": true,
+	"autoPackageSync": true,
+	"upload": true,
+	"notifications": true,
+	"https": true,
+	"reports": true,
+	"vehicleIp": true,
+	"languages": [
+		"en", 
+		"ru"
+	]
+}

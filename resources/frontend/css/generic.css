@@ -1,0 +1,128 @@
+html, body, ul, ol {
+	margin: 0;
+}
+
+html, body {
+	padding: 0;
+	font-size: 16px;
+}
+
+@font-face {
+    font-family: "webly-sleek-ui";
+    src: url("weblysleekuil.ttf") format("truetype");
+}
+
+body {
+	font-family: "webly-sleek-ui", "Segoe UI Light", Arial, sans-serif;
+	color: #666;
+	-webkit-font-smoothing: antialiased;
+}
+
+.clear {
+	clear: both;
+}
+
+.round-corners {
+	border-radius: 5px;
+}
+
+#content-container {
+    display : flex;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+}
+
+main {
+	display: inline-block;
+	margin-top: 20px;
+	margin-left: 20px;
+	min-width: 650px;
+	max-width: 1000px;
+	width: 100%;
+}
+
+main.with-sidebar {
+	max-width: 900px
+}
+
+@media (max-width: 1000px) {
+    body {
+        width: 1000px;
+    }
+}
+
+@media (min-width: 1000px) {
+	main.with-sidebar {
+		margin-left: 20px;
+		margin-right: 0px;
+	}
+}
+
+h1 {
+	font-weight: bold;
+	font-size: 2rem;
+}
+
+h2 {
+	font-weight: normal;
+	font-size: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+} 
+
+a {
+	text-decoration: none;
+	color: #00abe3;
+}
+
+a:hover {
+	text-decoration: none;
+}
+
+a:focus {
+	outline: none;
+	text-decoration: underline;
+}
+
+.disabled-link {
+	cursor: url('../img/unavailable.png'), not-allowed !important;
+	color: grey;
+}
+
+.disabled-link a,
+.disabled-link button,
+.disabled-link input,
+.disabled-link tr {
+	pointer-events: none;
+	color: grey;
+}
+
+.page-watermark {
+	display: none;
+}
+
+@media (min-width: 1400px) and (min-height: 1000px) {
+	.page-watermark {
+		display: block;
+		width: 400px;
+		height: 400px;
+		position: fixed;
+		z-index: -2;
+		opacity: 0.05;
+		
+		width: 900px;
+		height: 900px;
+		right: 0px;
+		bottom: 0px;
+	}
+}
+
+.nowrap {
+	white-space: nowrap;
+}
+
+.alertModal {
+    display: none;
+}

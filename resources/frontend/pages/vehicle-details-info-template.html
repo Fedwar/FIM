@@ -1,0 +1,111 @@
+@import fleetmanagement.frontend.model.*
+@args VehicleDetails vm, Security security
+@{VehicleDetails vehicleDetails = vm;}
+<script>
+	function refreshMap() {
+		if (map != null) {
+			@if (vehicleDetails.latitude == null) {
+				$('.map-location').hide();
+				$('.location-unknown').show();
+			} else {
+				$('.location-unknown').hide();
+				$('.map-location').show();
+				if (marker != null) {
+					map.removeLayer(marker);
+				}
+				addMarker(map, @vehicleDetails.latitude, @vehicleDetails.longitude);
+				map.setView(new L.LatLng(@vehicleDetails.latitude, @vehicleDetails.longitude), 11);
+			}
+			$('.last-updated').text("@vehicleDetails.lastLiveInfoUpdate");
+			$('.route-information').text("@vehicleDetails.routeInformation");
+		}
+	}
+
+	$("div.map-location").on("click", function(e) {
+		window.location.href = "/map/@vehicleDetails.id";
+	});
+
+	function addMarker(map, lat, lon) {
+		var markerLocation = new L.LatLng(lat, lon, true);
+		marker = new L.Marker(markerLocation);
+		map.addLayer(marker);
+		marker.setOpacity(1.0);
+	}
+</script>
+<h1><span id="vehicle-name">@vehicleDetails.name</span>
+	@restricted_link(security.hasVehicleNameEditPermission) {
+	<a
+			id="edit-vehicle-name"
+			class='btn btn-xs '
+			href="#"
+			data-toggle="modal"
+			data-target="#editNameDialog"
+			title='@i18n("vehicle_name_edit")'
+	>
+		<span class="glyphicon glyphicon-edit"></span>
+	</a>
+	}
+	@if (vehicleDetails.groupId != null) {
+	<a href="/vehicles/group/@vehicleDetails.groupId"><span id="groupName" class="label label-info">@vehicleDetails.groupName</span></a>
+	}
+</h1>
+
+@if (!vehicleDetails.uic.equals(vehicleDetails.name)) {
+<h2 id="vehicle-uic">@vehicleDetails.uic</h2>
+}
+@if (!vehicleDetails.additional_uic.isEmpty()) {
+<h2 id="vehicle-additional-uic">UIC @vehicleDetails.additional_uic</h2>
+}
+<table>
+	<tr>
+		<td class="col-label">@i18n("vehicle_last_pos_update")</td>
+		<td>@vehicleDetails.lastSeen.format("short-datetime")</td>
+	</tr>
+	@if (vehicleDetails.showIpAddress) {
+	<tr>
+		<td class="col-label">@i18n("vehicle_ip_address")</td>
+		<td>@vehicleDetails.ipAddress</td>
+	</tr>
+	}
+	<tr>
+		<td class="col-label">@i18n("vehicle_client_version")</td>
+		<td>@vehicleDetails.clientVersion</td>
+	</tr>
+	@for (VehicleDetails.ComponentVersion version : vehicleDetails.versions) {
+	<tr>
+		<td class="col-label">@version.component
+			@if(version.active) {
+			<span class="label label-success">@i18n("vehicle_datasupply_active")</span>
+			}
+		</td>
+
+		<td>
+			@if (version.packageId != null) {
+			<a href="/packages/@version.packageId">@version.version @version.slot @version.validity</a>
+			}  else {
+			@version.version @version.slot @version.validity
+			}
+		</td>
+	</tr>
+	}
+	@if (vehicleDetails.showAutoSync) {
+	<tr>
+		<td class="col-label">@i18n("vehicle_autosync")</td>
+		@if (vehicleDetails.autoSync) {
+		<td>
+			@i18n("vehicle_autosync_enabled")
+			<span @if(!security.hasAutoPackageSyncPermission) { class="disabled-link" title='@i18n("permission_denied")' } >
+					<a href="/vehicles/@vehicleDetails.id/disable-auto-sync" class="btn btn-default btn-sm">@i18n("vehicle_autosync_disable_button")</a>
+				</span>
+		</td>
+		} else {
+		<td>
+			@i18n("vehicle_autosync_disabled")
+			<span @if(!security.hasAutoPackageSyncPermission) { class="disabled-link" title='@i18n("permission_denied")' } >
+					<a href="/vehicles/@vehicleDetails.id/enable-auto-sync" class="btn btn-default btn-sm">@i18n("vehicle_autosync_enable_button")</a>
+				</span>
+		</td>
+		}
+	</tr>
+	}
+</table>

@@ -1,0 +1,44 @@
+
+/* Progress bars with centered text */
+.progress {
+	background: #b3b3b3;
+	background-image: -o-linear-gradient(top,#999999 0,#b3b3b3 100%);
+	background-image: -webkit-gradient(linear,left top,left bottom,from(#999999),to(#b3b3b3));
+	background-image: linear-gradient(to bottom,#999999 0,#b3b3b3 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff999999', endColorstr='#ffb3b3b3', GradientType=0);
+	position: relative;
+}
+
+.progress span {
+	position: absolute;
+	display: block;
+	width: 100%;
+	color: white;
+	text-align: center;
+}
+
+/* Remove top-border from headerless tables */	
+.table-no-header tr:first-child td {
+	border-top: 0px;
+}
+
+/* Remove progress bottom margin in tables */
+table .progress {
+	margin-bottom: 0px;
+	margin-top: 3px;
+}
+
+/* Text colors */	
+.text-danger {
+	color: red;
+}
+	
+.text-warning {
+	color: #ec971f;
+}
+
+/* Modal title style */
+.modal-title {
+	font-weight: bold;
+	font-size: 1.25rem;
+}

@@ -1,0 +1,181 @@
+@import fleetmanagement.frontend.model.*;
+@import fleetmanagement.backend.packages.PackageType;
+@args LicenceModel vm
+@extends(admin, activeNavigation: "/admin", activeSidebarItem: "licence_title")
+
+<script src="/js/save-changes-button-state-switcher.js"></script>
+
+@if (vm.licence == null || !vm.licence.isLoaded()) {
+<div class="alert alert-danger">@i18n("licence_not_loaded")</div>
+}
+
+<div class="section">
+    <h2>@i18n("licence_title")</h2>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">@i18n("licence_status")</h3>
+        </div>
+        <div class="panel-body">
+            <div>
+                <span>@i18n("licence_vehicles_number"):</span>
+                <strong>@vm.currentNumberOfVehicles</strong>
+                <span>@i18n("licence_of")</span>
+                <strong id="vehicleCount">@vm.licence.getMaximumVehicleCount()</strong>
+            </div>
+            <div>
+                <span>@i18n("licence_expiration_date"):</span>
+                <strong id="expireDate">
+                    @if (vm.licence.getExpirationDate() == null) {
+                        @i18n("licence_no_date")
+                    } else {
+                        @vm.licence.getExpirationDate()
+                    }
+                </strong>
+            </div>
+            <div>
+                <span>@i18n("licence_map_addon"):</span>
+                @if (vm.licence.isMapAvailable()) {
+                <strong id="geo">@i18n("licence_installed")</strong>
+                } else {
+                <strong id="geo">@i18n("licence_not_installed")</strong>
+                }
+            </div>
+            <div>
+                <span>@i18n("licence_vehicle_geo_addon"):</span>
+                @if (vm.licence.isVehicleGeoAvailable()) {
+                <strong id="vehicleGeo">@i18n("licence_installed")</strong>
+                } else {
+                <strong id="vehicleGeo">@i18n("licence_not_installed")</strong>
+                }
+            </div>
+            <div>
+                <span>@i18n("licence_diagnosis_addon"):</span>
+                @if (vm.licence.isDiagnosisInfoAvailable()) {
+                <strong id="diagnosis">@i18n("licence_installed")</strong>
+                } else {
+                <strong id="diagnosis">@i18n("licence_not_installed")</strong>
+                }
+            </div>
+            <div>
+                <span>@i18n("licence_operation_addon"):</span>
+                @if (vm.licence.isOperationInfoAvailable()) {
+                <strong id="operation">@i18n("licence_installed")</strong>
+                } else {
+                <strong id="operation">@i18n("licence_not_installed")</strong>
+                }
+            </div>
+            <div>
+                <span>@i18n("licence_auto_package_sync_addon"):</span>
+                @if (vm.licence.isAutoPackageSyncAvailable()) {
+                <strong id="packageSync">@i18n("licence_installed")</strong>
+                } else {
+                <strong id="packageSync">@i18n("licence_not_installed")</strong>
+                }
+            </div>
+            <div>
+                <span>@i18n("licence_upload_addon"):</span>
+                @if (vm.licence.isUploadAvailable()) {
+                <strong id="upload">@i18n("licence_installed")</strong>
+                } else {
+                <strong id="upload">@i18n("licence_not_installed")</strong>
+                }
+            </div>
+            <div>
+                <span>@i18n("licence_notifications_addon"):</span>
+                @if (vm.licence.isNotificationsAvailable()) {
+                <strong id="notifications">@i18n("licence_installed")</strong>
+                } else {
+                <strong id="notifications">@i18n("licence_not_installed")</strong>
+                }
+            </div>
+            <div>
+                <span>@i18n("licence_https_addon"):</span>
+                @if (vm.licence.isHttpsAvailable()) {
+                <strong id="https">@i18n("licence_installed")</strong>
+                } else {
+                <strong id="https">@i18n("licence_not_installed")</strong>
+                }
+            </div>
+            <div>
+                <span>@i18n("licence_reports_addon"):</span>
+                @if (vm.licence.isReportsAvailable()) {
+                <strong id="reports">@i18n("licence_installed")</strong>
+                } else {
+                <strong id="reports">@i18n("licence_not_installed")</strong>
+                }
+            </div>
+            <div>
+                <span>@i18n("licence_vehicle_ip_addon"):</span>
+                <strong id="vehicleIp">
+                    @if (vm.licence.isVehicleIpAvailable()) {
+                        @i18n("licence_installed")
+                    } else {
+                        @i18n("licence_not_installed")
+                    }
+                </strong>
+            </div>
+            <div>
+                <span>@i18n("licence_package_types"):</span>
+                @for (PackageType packageType: vm.licence.getPackageTypes()) {
+                <div id="packages" class="col-sm-offset-1 col-sm-11">
+                    <label class="packageType">
+                        @i18n(packageType.getResourceKey())
+                    </label>
+                </div>
+                }
+            </div>
+            <div>
+                <span>@i18n("licence_languages"):</span>
+                @if (vm.licence.getLanguages()) {
+                    @for (String language : vm.licence.getLanguages()) {
+                        <div id="languages" class="col-sm-offset-1 col-sm-11">
+                            <label class="language">
+                                @language
+                            </label>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">@i18n("licence_enable_addons")</h3>
+        </div>
+        <div class="panel-body">
+            <form id="licence-addon-form" method="post" action='/licence/addon'>
+                <div class="form-group">
+                    <span>@i18n("licence_seed"):</span>
+                    <strong id="seed" >@vm.licence.getInstallationSeed()</strong>
+                </div>
+                <div class="form-group">
+                    <span>@i18n("licence_command"):</span>
+                    <textarea
+                            id="install-code"
+                            name="encrypted-command"
+                            class="form-control"
+                            oninput="setSaveChangesButtonState()"
+                    >
+                    </textarea>
+                </div>
+                <div class="form-group">
+                    <button
+                            type="submit"
+                            class="btn btn-primary pull-right save-changes-button"
+                    >
+                        @i18n("licence_submit")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $("#install-code").on("keydown", function(event){
+        if (event.key === "Enter")
+            $("#licence-addon-form").trigger("submit");
+    });
+</script>

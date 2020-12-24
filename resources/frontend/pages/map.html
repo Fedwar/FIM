@@ -1,0 +1,266 @@
+@import fleetmanagement.frontend.model.*;
+@args MapAndGroups vm
+@extends(main, activeNavigation: "/vehicles")
+@{MapViewModel mapView = vm.mapView;}
+@{GroupList groups = vm.groups;}
+<style>
+#map {
+	position: absolute;
+	left: 0px;
+	top: 117px;
+	right: 0px;
+	bottom: 0px;
+}
+
+header {
+	height: 117px;
+}
+
+@@media (min-width: 992px) {	
+	#map {
+		left: 350px;
+	}
+}
+
+.red {
+	color: red;
+}
+
+.green {
+	color: green;
+}
+
+.next-stops {
+	border-spacing: 0px;
+}
+
+.next-stops td {
+	padding: 0px;
+}
+
+.next-stops tr td:nth-child(2) {
+	padding-left: 3px;
+	text-align: right;
+}
+
+.next-stops tr td:nth-child(3) {
+	padding-left: 10px;
+}
+
+h4 {
+	margin-bottom: 0px;
+}
+</style>
+
+@section(pagescripts) {
+<script src="/js/leaflet/leaflet.js"></script>
+<link href="/css/leaflet/leaflet.css" type="text/css" rel="stylesheet" />
+}
+
+@section(sidebar) {
+<h2>@i18n("general_view")</h2>
+<a href="/vehicles">@i18n("vehicle_list")</a>
+
+<h2>@i18n("general_search")</h2>
+<div class="input-group">
+    <span class="input-group-addon"><span class="glyphicon glyphicon-search"></span></span>
+    <input type="text" placeholder="@i18n("vehicle_list_find_by_name")" id="vehicle-search" class="form-control">
+</div>
+
+<h3>
+    @i18n("group_list")
+</h3>
+
+<div class="group-list">
+    <a href='/map'>
+        @if (groups.selectedGroupId == null) {
+        <strong>@i18n("group_all")</strong>
+        } else {
+        @i18n("group_all")
+        }
+    </a>
+
+    @for(GroupList.Group g: groups) {
+    <div class="group-line">
+        <a
+            id="@g.key"
+            style="display: inline;"
+            href='/map/group/@g.key'>
+            @if (g.key.equals(groups.selectedGroupId)) {
+            <strong>@g.name</strong>
+            } else {
+            @g.name
+            }
+        </a>
+    </div>
+    }
+</div>
+}
+
+<div id="map"></div>
+
+
+
+<script>
+var map;
+var allMarkers = new Map();
+var selectedMarker;
+var selectedVehicle;
+var selectOnLoadVehicle;
+
+$("#vehicle-search").on('input', searchVehicles);
+$(document).ready(function() {
+    map = initMap();
+    map.on('popupopen', function(e) {
+        selectedVehicle = e.popup._source.vehicleName;
+    });
+    map.on('popupclose', function(e) {
+        selectedVehicle = '';
+    });
+    reloadMarkers(initOnLoad);
+});
+
+function initOnLoad() {
+    let filteredMarkers = getFilteredMarkers($("#vehicle-search").val());
+    if (isNotEmpty(selectOnLoadVehicle)) {
+        let marker = allMarkers.get(selectOnLoadVehicle);
+        setMapView([marker]);
+    } else {
+        setMapView(filteredMarkers);
+    }
+}
+
+function initMap() {
+    var map = new L.Map('map');
+    var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    var osm = new L.TileLayer(osmUrl, {minZoom: 6, maxZoom: 16, attribution: null});
+    map.addLayer(osm);
+    return map
+}
+
+function addMarker(map, lat, lon, train, trainId, typeAndTrip, startAndDest, nextStationsHtml, lastUpdated, secondsSinceLastUpdate) {
+    var markerLocation = new L.LatLng(lat, lon, true);
+    var marker = new L.Marker(markerLocation);
+    if(secondsSinceLastUpdate > 60) {
+        var opacityPercentMissing = Math.min((secondsSinceLastUpdate - 60) / 10, 50);
+        marker.options.opacity = 1 - (opacityPercentMissing / 100);
+    }
+    var popupContent = "<h3>" + train + "</h3>";
+    if (isNotEmpty(typeAndTrip))
+        popupContent += typeAndTrip + "<br>";
+    if (isNotEmpty(startAndDest))
+        popupContent += startAndDest + "<br>";
+    if (isNotEmpty(nextStationsHtml)) {
+        var nextStops = "<table class='next-stops'>" + nextStationsHtml + "</table>";
+        popupContent += "<h4>@i18n("next_stops")</h4>" + nextStops + "<br>";
+    }
+    popupContent += lastUpdated + "<br><br>";
+
+    popupContent += "<a href='/vehicles/" + trainId + "'>@i18n("show_vehicle_details")</a>";
+
+    marker.bindPopup(popupContent);
+    map.addLayer(marker);
+    marker.setOpacity(1.0);
+
+    return marker;
+}
+
+function buildDelayColumn(delay) {
+    if (delay == null || delay == 0)
+        return "<td></td>";
+    if (delay > 0) {
+        return "<td class='red'>+" + delay + "</td>";
+    } else {
+        return "<td class='green'>" + delay + "</td>";
+    }
+}
+
+function setMapView(markers) {
+    if (markers.length == 0)
+        map.setView(new L.LatLng(48, 7), 4);
+    else if (markers.length == 1) {
+        map.setView(markers[0].getLatLng(), 10);
+        map.closePopup();
+        markers[0].openPopup();
+    } else {
+        var pos =  markers[0].getLatLng()
+        var minLat = pos.lat;
+        var maxLat = pos.lat;
+        var minLon = pos.lng;
+        var maxLon = pos.lng;
+
+        for (var i = 1; i < markers.length; i++) {
+            var pos =  markers[i].getLatLng()
+            minLat = Math.min(minLat, pos.lat);
+            maxLat = Math.max(maxLat, pos.lat);
+            minLon = Math.min(minLon, pos.lng);
+            maxLon = Math.max(maxLon, pos.lng);
+        }
+        map.fitBounds([[minLat-0.1, minLon-0.1], [maxLat+0.1, maxLon+0.1]]);
+    }
+
+}
+
+function isNotEmpty(string) {
+    return string != null && string != "";
+}
+
+function searchVehicles() {
+    if (isNotEmpty($("#vehicle-search").val())) {
+        let found = getFilteredMarkers($("#vehicle-search").val());
+        if(found.length == 0) {
+            alert("@i18n("vehicle_not_found")")
+        } else {
+            setMapView(found)
+        }
+    }
+}
+
+function filterMarkers() {
+	searchTerm = $("#vehicle-search").val();
+	$("#vehicle-search").toggleClass("active", searchTerm != "");
+
+    var found = getFilteredMarkers(searchTerm);
+
+    allMarkers.forEach(function (marker, name) {
+        map.removeLayer(marker)
+        if (name.toLowerCase().indexOf(searchTerm) >= 0) {
+            found.push(marker)
+        }
+    });
+
+    found.forEach(function(marker) {
+        map.addLayer(marker)
+        if (marker.vehicleName == selectedVehicle) {
+            marker.openPopup();
+        }
+    });
+}
+
+
+function getFilteredMarkers(searchTerm) {
+    searchTerm = searchTerm.toLowerCase()
+    var found = []
+    allMarkers.forEach(function (marker, name) {
+        if (name.toLowerCase().indexOf(searchTerm) >= 0) {
+            found.push(marker)
+        }
+    });
+    return found;
+}
+
+@invoke("autoUpdate.js", "ignored", false )
+
+function reloadMarkers(callback) {
+    $.getScript( window.location.href + "/ajax", function( data, textStatus, jqxhr ) {
+        initMarkers();
+        callback();
+    });
+}
+
+function autoUpdateOverride() {
+    reloadMarkers(filterMarkers);
+}
+
+</script>
+

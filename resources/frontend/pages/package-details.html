@@ -1,0 +1,224 @@
+@import fleetmanagement.frontend.model.*
+@args PackageDetails vm, Security security
+@extends(main, activeNavigation: "/packages")
+@{PackageDetails pkg = vm;}
+
+<link href="/css/selection-form.css" type="text/css" rel="stylesheet"/>
+<link href="/css/task-table.css" type="text/css" rel="stylesheet"/>
+
+<style>
+	.package-overview {
+		background: #00abe3;
+		color: white;
+		width: 250px;
+		height: 200px;
+		text-align: center;
+		float: left;
+		margin-right: 20px;
+		margin-top: 16px;
+	}
+
+	.package-overview-detail {
+		text-align: center;
+		padding: 10px;
+		margin-top: 45px;
+	}
+
+	.package-overview-data {
+		font-size: 56px;
+		line-height: 55px;
+	}
+
+	.package-detail-table th, .update-status-table th {
+		width: 150px;
+		font-weight: normal;
+		text-align: left;
+		vertical-align: top;
+	}
+
+	main h1 {
+		display: inline-block;
+	}
+
+</style>
+
+@invoke("status-message", pkg.message)
+
+@if (pkg.conflictingTasksModal != null) {
+	@invoke("package-conflicting-tasks", pkg.conflictingTasksModal)
+}
+
+@group_selection_form_dialog()
+
+@section(sidebar) {
+	<h2>@i18n("general_actions")</h2>
+
+	<div @if(!security.hasWritePermission) { class="disabled-link" title='@i18n("permission_denied")' }>
+		<a
+				id="install-package-on-vehicles"
+				href="#"
+				data-toggle="modal"
+				data-target="#install-package-on-vehicles-dialog"
+		>
+			@i18n("package_details_install")
+		</a>
+	</div>
+
+	<div @if(!security.hasWritePermission) { class="disabled-link" title='@i18n("permission_denied")' }>
+		<a
+				id="assign-package-to-vehicle-groups"
+				href="#"
+				onclick='createGroupSelectionFormDialog(
+						"assign",
+						"package",
+						"@pkg.key",
+						"@pkg.name",
+						"@pkg.groupsForAssigning.entrySet()",
+						"@i18n("package_details_assign_to_vehicle_groups")",
+						"@i18n("group_selection_form_confirm_assigning_package_dialog_title")",
+						"@i18n("group_selection_form_confirm_dialog_selected_package")"
+				)'
+		>
+			@i18n("package_details_assign_to_vehicle_groups")
+		</a>
+	</div>
+
+	<div @if(!security.hasWritePermission) { class="disabled-link" title='@i18n("permission_denied")' }>
+		<a
+				id="delete-button"
+				href="#"
+				onclick='confirmPackageDeleting("@pkg.key")'
+		>
+			@i18n("package_details_delete")</a>
+	</div>
+
+	<div @if(!security.hasWritePermission) { class="disabled-link" title='@i18n("permission_denied")' }>
+		<a
+				id="remove-package-from-vehicle-groups"
+				href="#"
+				onclick='createGroupSelectionFormDialog(
+						"remove",
+						"package",
+						"@pkg.key",
+						"@pkg.name",
+						"@pkg.groupsForRemovingPackagesFromThem.entrySet()",
+						"@i18n("package_details_remove_from_vehicle_groups")",
+						"@i18n("group_selection_form_confirm_removing_package_dialog_title")",
+						"@i18n("group_selection_form_confirm_dialog_selected_package")"
+				)'
+		>
+			@i18n("package_details_remove_from_vehicle_groups")
+		</a>
+	</div>
+
+	@if (pkg.downloadAvailable)  {
+		<a href="/packages/@pkg.key/content">@i18n("package_details.actions.download")</a>
+	}
+
+	<h2>@i18n("general_view")</h2>
+	<a href="/packages">@i18n("packages_list")</a>
+}
+
+<div id="package-snippet" data-url="/packages/@pkg.key/ajax">
+	@invoke("package-details-template", pkg, security)
+</div>
+
+<div
+		class="modal fade"
+		id="install-package-on-vehicles-dialog"
+		tabindex="-1" role="dialog"
+		aria-labelledby="install-package-on-vehicles-dialog-label"
+>
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button
+						type="button"
+						class="close"
+						data-dismiss="modal"
+						aria-label="Close"
+				>
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="install-package-on-vehicles-dialog-label">
+					@i18n("package_details_install")
+				</h4>
+			</div>
+			<div class="modal-body">
+				@if (!pkg.vehicleMapForInstallation.isEmpty()) {
+				<form id='packageInstallForm' method="post" action="/packages/@pkg.key/start-installation" class="selection-form">
+					@invoke("vehicle-pick-template", pkg.vehicleMapForInstallation, security.hasWritePermission, "p")
+				</form>
+				} else {
+					@i18n("package_details_no_vehicles")
+				}
+			</div>
+			<div class="modal-footer">
+				@{String buttonStyle = security.hasWritePermission ? "btn-primary" : "btn-default";}
+				<button id="start-installation-button"
+						class="btn @buttonStyle"
+						onclick="createStartInstallationDialog()">
+					@i18n("package_details_start_installation")
+				</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">@i18n("general_cancel")</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div
+		class="modal fade"
+		id="start-installation-dialog"
+		tabindex="-1"
+		role="dialog"
+		aria-labelledby="start-installation-dialog-label"
+>
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button
+						type="button"
+						class="close"
+						data-dismiss="modal"
+						aria-label="Close"
+				>
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4
+						class="modal-title"
+						id="start-installation-dialog-label"
+				>
+					@i18n("package_details_installation_dialog_title")
+				</h4>
+			</div>
+			<div class="modal-body">
+				<div>
+					<label>@i18n("package_details_selected_package")</label>
+					<label id="modal-package">@pkg.name</label>
+				</div>
+				<div>
+					<label>@i18n("package_details_selected_vehicles")</label>
+					<label id="modal-vehicles"></label>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button
+						type="button"
+						id="accept-button"
+						class="btn btn-primary"
+						data-dismiss="modal"
+						onclick="startInstallation()"
+				>
+					@i18n("general_ok")
+				</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">@i18n("general_cancel")</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	@invoke("selection-form.js")
+	@invoke("package-details.js")
+	@invoke("autoUpdate.js", "package-snippet")
+</script>

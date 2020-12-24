@@ -1,0 +1,420 @@
+@import fleetmanagement.frontend.model.*
+@args OperationDataModel vm
+@extends(main, activeNavigation: "/vehicles")
+
+@section(sidebar) {
+<h2>@i18n("general_view")</h2>
+<a href='/vehicles/@vm.vehicleId'>@i18n("operation_data_vehicle_details")</a>
+}
+
+<style>
+input[type="date"].form-control {
+    line-height: 1.42857143;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column
+}
+
+.buttons a {
+    margin:1px;
+}
+
+.form-horizontal {
+    margin-top:20px;
+}
+
+#widgets {
+    padding: 0px;
+}
+
+.widget {
+    float: left
+}
+
+.saveWidgetBtn {
+    display: none;
+}
+
+</style>
+
+@if (vm.indicators == null || !vm.licence.isOperationInfoAvailable()) {
+<div class="alert alert-warning">
+    @i18n("operation_data_not_available")
+</div>
+<script>
+    @invoke("autoUpdate.js", "anystring" )
+    function autoUpdateOverride() {
+        window.location.reload();
+    };
+</script>
+@return
+}
+
+<!-- Load c3.css -->
+<link href="/css/c3.min.css" rel="stylesheet">
+
+<!-- Load d3.js and c3.js -->
+<script src="/js/d3.v5.min.js" charset="utf-8"></script>
+<script src="/js/c3.min.js"></script>
+<script src="/js/rgbcolor.js"></script>
+<script src="/js/stackblur.min.js"></script>
+<script src="/js/arrayFrom.js"></script>
+<script src="/js/bluebird.min.js"></script>
+<script src="/js/startsWith.js"></script>
+<script src="/js/canvg.min.js"></script>
+<script src="/js/saveSvgAsPng.js"></script>
+
+<div class="modal fade" id="widgetDialog" tabindex="-1" role="dialog" aria-labelledby="widgetDialogLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" id="closeModalButton" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="widgetDialogLabel">@i18n("oper_data_widget_modal_header")</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <input class="form-control" id="modalId" type="hidden">
+                    <div class="form-group">
+                        <label for="modalWidget" class="col-sm-4 control-label">@i18n("oper_data_widget_type")</label>
+                        <div class="col-sm-7">
+                            <select id="modalWidget" class="form-control">
+                                <option value=""></option>
+                                <option value="GAUGE">@i18n("widget_type_gauge")</option>
+                                <option value="BAR">@i18n("widget_type_bar")</option>
+                                <option value="CHART">@i18n("widget_type_chart")</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalMin" class="col-sm-4 control-label">@i18n("oper_data_widget_min_value")</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" id="modalMin">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalMax" class="col-sm-4 control-label">@i18n("oper_data_widget_max_value")</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" id="modalMax">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="saveModalButton" onClick="saveWidget()" class="btn btn-primary">
+                    @i18n("notif_save_button")
+                </button>
+                <button type="button" id="cancelModalButton" class="btn btn-default" data-dismiss="modal">
+                    @i18n("notif_cancel_button")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2>@i18n("operation_data_for", vm.vehicleName)</h2>
+
+
+<div class="col-sm-8">
+    <div id="operation-data" data-url="/operation-data/@vm.vehicleId/ajax">
+        @invoke("operation-data-template", vm)
+    </div>
+</div>
+<div id="widgets" class="col-sm-4" style="display:inline-block;">
+    @if(vm.indicators) {
+    @for(OperationDataModel.Indicator indicator: vm.indicators) {
+    <div class="widget" indicator="@indicator.id"></div>
+    }
+    }
+</div>
+
+
+<script>
+
+    let widgetMap = new Map();
+
+    function editWidget(button) {
+        let indicatorId = $(button).attr("indicator");
+        $.ajax({
+            type: 'GET',
+            url: '/operation-data/widget/ajax',
+            data: { indicatorId: indicatorId },
+            success: function(response) {
+                $('#modalId').val(indicatorId);
+                $('#modalWidget').val(response.type);
+                $('#modalMin').val(response.minValue);
+                $('#modalMax').val(response.maxValue);
+                $('#widgetDialog').modal('show')
+
+            }
+        });
+    };
+
+
+    function saveWidget() {
+        let indicatorId = $('#modalId').val();
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: '/operation-data/widget/ajax',
+            data: toJson(),
+            success: function(data, status, xhr) {
+                $('#widgetDialog').modal('hide');
+                createWidgets();
+            },
+            error: function (response, status, error) {}
+        })
+    }
+
+    function toJson() {
+        return JSON.stringify({
+            indicatorId: $('#modalId').val(),
+            type: $('#modalWidget').val(),
+            minValue: $('#modalMin').val(),
+            maxValue: $('#modalMax').val()
+        })
+    }
+
+    function setInputValue(element) {
+        var $element = $(element);
+        var $input = $("#" + $element.closest("ul").attr("inputId"))
+        $input.val($element.text());
+    }
+
+    function prepareForExport(svg) {
+        //inline some css styles for proper converting to image
+        $( '<rect width="900" height="320" style="fill: white;"></rect>' ).insertBefore( $(svg).find('defs')[0] );
+
+        var nodeList = svg.querySelectorAll('.c3-chart-line path');
+        var nodeList2 = svg.querySelectorAll('.c3-axis path');
+        var nodeList3 = svg.querySelectorAll('.c3 line');
+        var line_graph = Array.from(nodeList);
+        var x_and_y = Array.from(nodeList2).concat(Array.from(nodeList3));
+        line_graph.forEach(function(element){
+            element.style.fill = "none";
+        })
+        x_and_y.forEach(function(element){
+            element.style.fill = "none";
+            if (element.style.stroke == '')
+                element.style.stroke = "black";
+        })
+
+        var chart_line = Array.from(svg.querySelectorAll('.c3-chart-line circle'));
+        chart_line.forEach(function(element){
+            element.style.fill =  element.style.color;
+        })
+
+        $('#chart text').css( 'fill', 'black' );
+    }
+
+    function saveAsImage(button) {
+        let indicatorId = $(button).attr("indicator");
+        var svg = $('.widget[indicator="' + indicatorId + '"]').find('svg')[0]
+        //var svg = element.querySelector('svg');
+        prepareForExport(svg);
+        saveSvgAsPng(svg, indicatorId + '.png', {canvg:window.canvg});
+    }
+
+    function buildChart() {
+		var params = {
+            "indicatorId": $('#indicator').val(),
+            "vehicleId": '@vm.vehicleId',
+            "beginDate": $('#beginDate').val(),
+            "endDate": $('#endDate').val(),
+            "group_by": $('#group_by').val()
+        }
+
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            url: 'chart/ajax',
+            data: params,
+            success: function (response, status, error) {
+				svg = c3.generate({
+				    bindto: '#chart',
+					data: {
+						xFormat: response.dateFormat,
+						columns: response.columns
+					},
+					axis: {
+						x: {
+							type: 'timeseries',
+							tick: {
+								format: response.tickFormat
+							}
+						}
+					}
+				})
+				$( '<rect width="900" height="320" style="fill: white;"></rect>' ).insertBefore( "#chart defs" );
+			},
+            error: function (response, status, error) {}
+        })
+    }
+
+	function buildGauge(element, data) {
+	    $(element).css({height: '140px', width: '140px'});
+        var widget = c3.generate({
+            bindto: element,
+            data: {
+                columns: data.columns,
+                type: 'gauge'
+            },
+            gauge: {
+                label: {
+                    format: function(value, ratio) {
+                        return value + ' ' + data.unit;
+                    },
+                },
+                max: data.maxValue,
+                min: data.minValue
+            },
+            legend: {
+                item: { onclick: function () {} }
+            }
+        });
+        widgetMap.set(element.getAttribute("indicator"), widget);
+	};
+
+	function buildBar(element, data) {
+	    $(element).css({height: '160px', width: '140px'});
+        var widget = c3.generate({
+            bindto: element,
+            data: {
+                columns: data.columns,
+                type: 'bar'
+            },
+            axis: {
+                x: {
+                    type: 'category',
+                    categories: [data.unit]
+                },
+                y: {
+                    max: data.maxValue,
+                    min: data.minValue,
+                    padding: {top: 0, bottom: 0}
+                }
+            },
+            legend: {
+                item: { onclick: function () {} }
+            }
+
+        });
+        widgetMap.set(element.getAttribute("indicator"), widget);
+	};
+
+	function buildChart(element, data) {
+	    $(element).css({height:'160px', width:'280px'});
+        var widget = c3.generate({
+            bindto: element,
+            data: {
+                x: 'x',
+                xFormat: data.dateFormat,
+                columns: data.columns
+            },
+            padding: {
+                left: 40,
+                right: 40
+            },
+            axis: {
+                x: {
+                    type: 'timeseries',
+                    tick: {
+                        count: 3,
+                        format: data.tickFormat
+                    }
+                }
+            },
+            legend: {
+                item: { onclick: function () {} }
+            }
+        })
+        widgetMap.set(element.getAttribute("indicator"), widget);
+        //$( '<rect width="900" height="320" style="fill: white;"></rect>' ).insertBefore( "#chart defs" );
+	};
+
+    function buildWidget(element) {
+        var params = {
+            "indicatorId": element.getAttribute("indicator"),
+            "vehicleId": '@vm.vehicleId'
+        }
+
+        $.ajax({
+            type: 'GET',
+            url: 'widget-data/ajax',
+            data: params,
+            cache: false,
+            success: function (response, status, error) {
+                $(element).empty();
+                $(element).prop('style', '');
+                if (response.type == undefined) {
+                    widgetMap.delete(element.getAttribute("indicator"));
+                } else if (response.type == 'GAUGE') {
+                    buildGauge(element, response)
+                } else if (response.type == 'BAR') {
+                    buildBar(element, response)
+                } else if (response.type == 'CHART') {
+                    buildChart(element, response)
+                }
+                refreshButtonsVisibility();
+			},
+            error: function (response, status, error) {
+
+            }
+        })
+    };
+
+    function createWidgets() {
+        $('.widget').each(function( index, element ) {
+            buildWidget(element);
+        });
+    }
+
+    function reloadWidgets() {
+        widgetMap.forEach(function (value, key) {
+            var params = {
+                "indicatorId": key,
+                "vehicleId": '@vm.vehicleId'
+            }
+
+            $.ajax({
+                type: 'GET',
+                url: 'widget-data/ajax',
+                data: params,
+                cache: false,
+                success: function (response, status, error) {
+                    value.load({columns: response.columns})
+                },
+                error: function (response, status, error) {}
+            })
+        });
+    }
+
+    createWidgets();
+
+	@invoke("autoUpdate.js", "operation-data" )
+
+	function refreshButtonsVisibility() {
+		$(".saveWidgetBtn").hide();
+		widgetMap.forEach(function (value, key) {
+		    $(".saveWidgetBtn[indicator='" + key + "']").show();
+		});
+	}
+
+	function afterUpdate() {
+		reloadWidgets();
+        refreshButtonsVisibility();
+    };
+
+    $("#modalMax,#modalMin,#modalWidget").on("keypress", function(e) {
+        if (e.keyCode == 13) {
+            saveWidget()
+        };
+    });
+
+</script>
+
+
+

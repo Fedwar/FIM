@@ -1,0 +1,189 @@
+@import fleetmanagement.frontend.model.VehiclesReport.*;
+@import fleetmanagement.frontend.model.VehiclesReport;
+@extends(main, activeNavigation: "/report")
+@args VehiclesReport vm
+
+<link href="/css/selection-form.css" type="text/css" rel="stylesheet"/>
+
+<script src="/js/selection-form.js"></script>
+<script src="/js/vehicles-report.rythm.js"></script>
+@datepickerLocale()
+
+@section(sidebar) {
+    <h2>@i18n("general_view")</h2>
+    <a href="/vehicles">@i18n("reports_vehicles_link")</a>
+}
+
+<h2>@i18n("reports_download_report")</h2>
+
+<style>
+.buttonBar {
+    border-bottom: 2px solid #ddd;
+    padding: 10px;
+}
+.inlineFormGroup {
+    display: flex;
+}
+.inlineFormGroup > * {
+    margin-right: 10px;
+    margin-bottom: 0px;
+}
+.inlineFormGroup > label {
+    padding: 5px;
+}
+
+#vehiclesList,
+#indicatorsList {
+    display: none;
+}
+
+.checkboxTable td,
+.checkboxTable th{
+    padding-bottom: 0px !important;
+    padding-top: 0px !important;
+}
+
+.form-control[readonly] {
+    background-color: white;
+}
+
+input[type="date"].form-control {
+    line-height: 1.42857143;
+}
+</style>
+
+<div class="buttonBar">
+    <button
+            type="button"
+            id="downloadReportButton"
+            class="btn btn-primary pull-right"
+            data-dismiss="modal"
+            onclick="downloadReport()"
+    >
+        @i18n("reports_download_report")
+    </button>
+
+    <div class="inlineFormGroup">
+        <label>
+            @i18n("reports_report_type")
+        </label>
+        <select id="reportType" style="width: auto;" class="form-control" onchange="showReportParameters()">
+            <option value="diagnosis">@i18n("reports_diagnosis_report")</option>
+            <option value="operation-data">@i18n("reports_operation_data_report")</option>
+            <option value="connection-status">@i18n("reports_connection_status_report")</option>
+        </select>
+    </div>
+</div>
+
+<div class="col-sm-6">
+    <form class="form-horizontal" id="reportParameters">
+        <h2>
+            @i18n("reports_select_report_parameters")
+        </h2>
+        @reportParameter("startDateInput", "reports_param_start_date") {
+        <input
+                class="form-control datepicker"
+                id="startDateInput"
+        >
+        }
+        @reportParameter("endDateInput", "reports_param_end_date") {
+        <input
+                class="form-control datepicker"
+                id="endDateInput"
+        >
+        }
+        @reportParameter("vehicles", "reports_param_vehicles") {
+        <input
+                class="form-control"
+                id="vehicles"
+                placeholder='@i18n("reports_param_select_placeholder")'
+                readonly
+        >
+        }
+        @reportParameter("rangeBy", "reports_param_range_by") {
+        <select id="rangeBy" name="range_by" class="form-control">
+            <option value="hours">@i18n("reports_range_by_hours")</option>
+            <option value="days">@i18n("reports_range_by_days")</option>
+            <option value="weeks">@i18n("reports_range_by_weeks")</option>
+            <option value="months">@i18n("reports_range_by_months")</option>
+        </select>
+        }
+        @reportParameter("indicators", "reports_param_indicators") {
+        <input
+                class="form-control"
+                id="indicators"
+                placeholder='@i18n("reports_param_select_placeholder")'
+                readonly
+        >
+        }
+    </form>
+</div>
+
+<div class="col-sm-6">
+    <div id="selectArea">
+        <div id="indicatorsList" class="selection-form">
+            <h2>@i18n("reports_select_indicators")</h2>
+            <table class="checkboxTable table table-hover">
+                <thead>
+                <tr>
+                    <th>
+                        <input type="checkbox" id="select-all-indicators">
+                        <label for="select-all-indicators">@i18n("reports_select_all_indicators")</label>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                @for(String indicator: vm.indicatorNames) {
+                <tr>
+                    <td>
+                        <input type="checkbox" value="@indicator">
+                        @indicator
+                    </td>
+                </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <div id="vehiclesList" class="selection-form">
+            <h2>@i18n("reports_select_vehicles")</h2>
+            <table class="checkboxTable table table-hover">
+                <thead>
+                <tr>
+                    <th>
+                        <input type="checkbox" id="select-all" class="select-all">
+                        <label for="select-all">@i18n("group_all")</label>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                @for(VehiclesReport.Group group: vm.groups) {
+                <tr>
+                    <td >
+                        <input type="checkbox" id="@group.id.toString()" data-group-id="@group.name" name="groups">
+                        @group.name
+                    </td>
+                </tr>
+                @for(VehiclesReport.Vehicle vehicle: group.vehicles) {
+                <tr>
+                    <td style="padding-left: 24px">
+                        <input
+                                type="checkbox"
+                                id="@vehicle.id.toString()"
+                                data-group="@group.name"
+                                name="vehicles"
+                                value="@vehicle.name"
+                        >
+                        @vehicle.name
+                    </td>
+                </tr>
+                }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+

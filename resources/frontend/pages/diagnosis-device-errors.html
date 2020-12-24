@@ -1,0 +1,44 @@
+@import fleetmanagement.frontend.model.*
+@import fleetmanagement.backend.diagnosis.*
+@args DiagnosedDeviceModel vm
+@extends(main, activeNavigation: "/vehicles")
+
+@section(sidebar) {
+	<h2>@i18n("general_view")</h2>
+	<a href='/vehicles/@vm.vehicleId'>@i18n("diagnosis_details_vehicle_details")</a>
+}
+
+<h2>@vm.deviceName</h2>
+<h2>@i18n("diagnosis_details_error_history")</h2>
+
+@if (!vm.licence.isDiagnosisInfoAvailable() || vm.device == null) {
+<div>
+	<div class="alert alert-warning">
+		@i18n("diagnosis_details_diagnosis_not_available")
+	</div>
+</div>
+@return
+}
+
+<table class="table table-condensed">
+	<thead>
+	<tr>
+		<th>@i18n("diagnosis_device_error_start")</th>
+		<th>@i18n("diagnosis_device_error_end")</th>
+		<th>@i18n("diagnosis_device_error_code")</th>
+		<th>@i18n("diagnosis_device_error_category")</th>
+		<th>@i18n("diagnosis_device_error_message")</th>
+	</tr>
+	</thead>
+	<tbody>
+	@for(DiagnosedDeviceModel.StatusEntryModel error: vm.errors) {
+	<tr>
+		<td class="nowrap">@error.start.format("short-datetime")</td>
+		<td class="nowrap">@error.end.format("short-datetime")</td>
+		<td class="nowrap">@error.code</td>
+		<td class="nowrap">@error.category</td>
+		<td class="nowrap">@error.message</td>
+	</tr>
+	}
+	</tbody>
+</table>

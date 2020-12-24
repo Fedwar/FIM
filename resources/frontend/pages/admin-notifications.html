@@ -1,0 +1,463 @@
+@import fleetmanagement.frontend.model.*;
+@import fleetmanagement.backend.notifications.settings.Type;
+@import fleetmanagement.backend.notifications.settings.Parameter;
+@import static fleetmanagement.frontend.model.NotificationsModel.*;
+@args NotificationsModel vm
+@extends(admin, activeNavigation: "/admin", activeSidebarItem: "notif_link")
+
+<style>
+.section {
+    margin-bottom: 200px;
+}
+
+.head-button {
+    float: right;
+    margin-left: 8px;
+    margin-bottom: 14px;
+}
+
+.input-plaintext{
+    border: 0;
+    width: 100%;
+    padding-top: 7px;
+}
+
+.input-group[class*="col-"] {
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+.parameter-dropdown {
+    max-height:200px;
+    overflow-y:auto;
+}
+
+.modalCheckbox {
+    text-align: left !important;
+}
+</style>
+
+<img src="/img/background-administration.png" class="page-watermark" alt="">
+
+@if (!vm.licence.isNotificationsAvailable()) {
+<p>@i18n("licence_notifications_addon_no_licence")</p>
+@return
+}
+
+<div class="modal fade" id="notificationDialog" tabindex="-1" role="dialog" aria-labelledby="notificationDialogLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" id="closeModalButton" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="notificationDialogLabel">@i18n("notif_modal_title")</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger modalAlert">@i18n("ad_filter_save_success")</div>
+                <form class="form-horizontal">
+                    <input class="form-control" id="modalId" type="hidden">
+                    <input class="form-control" id="modalType" type="hidden">
+                    <div class="form-group">
+                        <label for="modalDescr" class="col-sm-4 control-label">@i18n("notif_notify_when")</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="input-plaintext" id="modalDescr" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalMail" class="col-sm-4 control-label">@i18n("notif_email")</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" id="modalMail" placeholder=''>
+                        </div>
+                    </div>
+                    @for(Parameter param: vm.parameters) {
+                    <div class="form-group modalParameter">
+                        <label for="@param.toString()"
+                               class="col-sm-4 control-label">@i18n(param.getResourceKey())
+                        </label>
+                        @if (param == Parameter.DEVICE_NAME) {
+                        <div class="input-group col-sm-7">
+                            <input class="form-control"  id="@param.toString()">
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="caret"></span></button>
+                                <ul class="dropdown-menu dropdown-menu-right parameter-dropdown" inputId="@param.toString()">
+                                    @for (String name : vm.deviceNames) {
+                                    <li><a href="#" onclick="setInputValue(this)">@name</a></li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        } else if (param == Parameter.VEHICLE_NAME) {
+                        <div class="input-group col-sm-7">
+                            <input class="form-control"  id="@param.toString()">
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="caret"></span></button>
+                                <ul class="dropdown-menu dropdown-menu-right parameter-dropdown" inputId="@param.toString()">
+                                    @for (String name : vm.vehicleNames) {
+                                    <li><a href="#" onclick="setInputValue(this)">@name</a></li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        } else if (param == Parameter.GROUP_NAME) {
+                        <div class="input-group col-sm-7">
+                            <input class="form-control"  id="@param.toString()">
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="caret"></span></button>
+                                <ul class="dropdown-menu dropdown-menu-right parameter-dropdown" inputId="@param.toString()">
+                                    @for (String name : vm.groupNames) {
+                                    <li><a href="#" onclick="setInputValue(this)">@name</a></li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        } else if (param == Parameter.INDICATOR_ID) {
+                        <div class="input-group col-sm-7">
+                            <input class="form-control"  id="@param.toString()">
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="caret"></span></button>
+                                <ul class="dropdown-menu dropdown-menu-right parameter-dropdown" inputId="@param.toString()">
+                                    @for (String name : vm.indicatorNames) {
+                                    <li><a href="#" onclick="setInputValue(this)">@name</a></li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        } else if (param == Parameter.PACKAGE_TYPE) {
+                        <div class="input-group col-sm-7">
+                            <input class="form-control"  id="@param.toString()">
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="caret"></span></button>
+                                <ul class="dropdown-menu dropdown-menu-right parameter-dropdown" inputId="@param.toString()">
+                                    <li><a href="#" onclick="setInputValue(this)" data="notif_all_package_types">@i18n("notif_all_package_types")</a></li>
+                                    @for (String name : vm.packageTypeNames) {
+                                    <li><a href="#" onclick="setInputValue(this)">@i18n(name)</a></li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        } else if (param == Parameter.ALL_VEHICLES) {
+                        <div class="input-group col-sm-7 control-label modalCheckbox">
+                            <input type="checkbox" id="@param.toString()" onclick="onParamChanged('@param.toString()')">
+                        </div>
+                        } else {
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" id="@param.toString()" placeholder='@i18n(param.getDescriptionKey())'>
+                        </div>
+                        }
+                    </div>
+                    }
+                </form>
+            </div>
+            <div class="modal-footer">
+                @if(security.hasNotificationTestPermission) {
+                    <button type="button" id="testModalButton" onClick="testNotification()" class="btn btn-primary">
+                        @i18n("notif_test_button")
+                    </button>
+                }
+                <button type="button" id="saveModalButton" onClick="saveNotification()" class="btn btn-primary">
+                    @i18n("notif_save_button")
+                </button>
+                <button type="button" id="cancelModalButton" class="btn btn-default" data-dismiss="modal">
+                    @i18n("notif_cancel_button")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@invoke("common/message-bar-hidden", "mainAlert", "" )
+
+<div class="section">
+    <div class="btn-group head-button" role="group">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false">
+            @i18n("notif_add_button")
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right">
+            @for (Type type: Type.values()) {
+            <li><a href="#" onClick="newNotification('@type')">@i18n(type.getResourceKey())</a></li>
+            }
+        </ul>
+    </div>
+
+    <h2 class="header">@i18n("notif_settings")</h2>
+
+    <table class="table table-condensed">
+        <thead>
+        <tr>
+            <th>@i18n("notif_notify_when")</th>
+            <th>@i18n("notif_parameters")</th>
+            <th>@i18n("notif_email")</th>
+            <th style="width:50px">@i18n("notif_action")</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        @for(Notification notificationSetting: vm.notifications) {
+        <tr id="@notificationSetting.id" type="@notificationSetting.type">
+            <td>@i18n(notificationSetting.type.getResourceKey())</td>
+            <td class="nowrap">
+                @for (Map.Entry<Parameter, String> entry : notificationSetting.parameters.entrySet()) {
+                    @if (entry.getKey() == Parameter.ALL_VEHICLES) {
+                        @i18n(entry.getKey().getResourceKey())
+                        <span class="parameter" key="@entry.getKey()"></span><br>
+                    } else {
+                        @i18n(entry.getKey().getResourceKey()) :
+                        <span class="parameter" key="@entry.getKey()">@entry.getValue()</span><br>
+                    }
+                }
+            </td>
+            <td class="nowrap email">@notificationSetting.mailList</td>
+            <td>
+                <div class="btn-group pull-right">
+                    <button
+                            type="button"
+                            class="btn btn-link dropdown-toggle btn-xs"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="#" onClick="editNotification(this)">@i18n("notif_edit")</a>
+                        </li>
+                        <li>
+                            <a href="#" onClick="deleteNotification(this)">@i18n("notif_delete")</a>
+                        </li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+        }
+        </tbody>
+    </table>
+
+</div>
+
+<script>
+    var typeNames = new Map();
+    var captionValueMap = new Map();
+
+    @for (Type type: Type.values()) {
+        typeNames.set('@type', '@i18n(type.getResourceKey())');
+    }
+
+    captionValueMap.set('@i18n("notif_all_package_types")', 'notif_all_package_types');
+    @for (String name : vm.packageTypeNames) {
+        captionValueMap.set('@i18n(name)', '@name');
+    }
+
+    function prepareDialog(type) {
+        $('#modalId').val("");
+        var $params =  $('.modalParameter')
+        $params.hide();
+        $params.find("input").val("");
+        $('#ALL_VEHICLES').prop('checked', false);
+        if (type == 'DIAGNOSIS_MAX_ERRORS') {
+            $('#ERROR_LIMIT').closest(".modalParameter").show();
+        } else if (type == 'DIAGNOSED_DEVICE_ERROR') {
+            $('#DEVICE_NAME').closest(".modalParameter").show();
+        } else if (type == 'PACKAGE_IMPORT_ERROR') {
+            $('#PACKAGE_TYPE').closest(".modalParameter").show();
+            $('#PACKAGE_TYPE').val('@i18n("notif_all_package_types")')
+        } else if (type == 'INDICATOR_INVALID_VALUE') {
+            $('#INDICATOR_ID').closest(".modalParameter").show();
+            $('#INVALID_VALUE').closest(".modalParameter").show();
+        } else if (type == 'INDICATOR_VALUE_RANGE') {
+            $('#INDICATOR_ID').closest(".modalParameter").show();
+            $('#UPPER_LIMIT').closest(".modalParameter").show();
+            $('#LOWER_LIMIT').closest(".modalParameter").show();
+        } else if (type == 'VEHICLE_OFFLINE') {
+            $('#VEHICLE_OFFLINE_TIMEOUT').closest(".modalParameter").show();
+            $('#ALL_VEHICLES').closest(".modalParameter").show();
+            $('#VEHICLE_NAME').closest(".modalParameter").show();
+            $('#GROUP_NAME').closest(".modalParameter").show();
+        }
+    }
+
+    function editNotification(button) {
+        var $row = $(button).closest("tr");
+        var type = $row.attr("type");
+        prepareDialog(type);
+        $('#modalId').val($row.attr("id"));
+        $('#modalType').val(type);
+        $('#modalDescr').val(typeNames.get(type).replace(/&#39;/g, "'"));
+        $('#modalMail').val($row.find(".email").text());
+        $row.find(".parameter").each(function(i, obj) {
+            $("#" + obj.getAttribute("key")).val(obj.textContent);
+            if (obj.getAttribute("key") == 'ALL_VEHICLES')
+                $("#" + obj.getAttribute("key")).prop('checked', true)
+        });
+        $('#notificationDialog').modal('show')
+    };
+
+    function newNotification(type) {
+        hideModalMessage();
+        prepareDialog(type);
+        $('#modalType').val(type);
+        $('#modalDescr').val(typeNames.get(type).replace(/&#39;/g, "'"));
+        $('#modalMail').val('@vm.defaultEmail');
+        $("#ALL_VEHICLES").prop('checked', true)
+        $('#notificationDialog').modal('show')
+    };
+
+    function testNotification() {
+        $.ajax({
+            type: "POST",
+            url: "/admin/notifications/test",
+            data: toJson(),
+            success: function (response, status) {
+                showSuccessMessage(response)
+            },
+            error: function (response, status, error) {
+                showErrorMessage(response.responseText)
+            }
+        })
+    }
+
+    function saveNotification() {
+
+        $.ajax({
+            type: "POST",
+            url: "/admin/notifications",
+            data: toJson(),
+            success: reloadPage,
+            error: function (response, status, error) {
+                showErrorMessage(response.responseText)
+            }
+        })
+    }
+
+    function deleteNotification(button) {
+        $.ajax({
+            url: "/admin/notifications/" + $(button).closest("tr").attr("id"),
+            type: 'DELETE',
+            success: reloadPage,
+            error: function (response, status, error) {
+                showErrorMessage(response.responseText)
+            }
+        })
+    }
+
+    function reloadPage(){
+        $('#notificationDialog').modal('hide')
+        window.location.reload()
+    }
+
+    function showSuccessMessage(message) {
+        showModalMessage(message, "alert-success")
+    }
+
+    function showErrorMessage(message) {
+        showModalMessage(message, "alert-danger")
+    }
+
+    function showModalMessage(message, type) {
+        alert = $(".modalAlert");
+        alert.slideUp(400, function() {
+            alert.removeClass()
+            .addClass( type )
+            .addClass( "modalAlert" )
+            .addClass( "alert" )
+            alert.text(message)
+            .slideDown(400);
+        })
+    }
+
+    function hideModalMessage() {
+        $(".modalAlert").hide();
+    }
+
+    function toJson() {
+        var parameters = [];
+
+        $('.modalParameter').find( ":visible" ).find("input").each(function(i, obj) {
+            value = obj.value
+            if (obj.id == 'PACKAGE_TYPE')
+                value = captionValueMap.get(value);
+            if (obj.id == 'ALL_VEHICLES') {
+                if ($(obj).prop('checked'))
+                    value = true
+                else
+                    value = ''
+            }
+
+            parameters[i] = [obj.id , value ];
+        });
+
+        return JSON.stringify({
+            "id": $('#modalId').val(),
+            "type": $('#modalType').val(),
+            "mailList": $('#modalMail').val(),
+            "parameters": parameters
+        })
+    }
+
+    function setInputValue(element) {
+        var $element = $(element);
+        paramId = $element.closest("ul").attr("inputId")
+        var $input = $("#" + paramId)
+        $input.val($element.text());
+
+        onParamChanged(paramId);
+    }
+
+    function onParamChanged(paramId) {
+        let settingType = $('#modalType').val();
+        if (settingType == 'VEHICLE_OFFLINE') {
+            if (paramId == 'GROUP_NAME') {
+                $('#VEHICLE_NAME').val('');
+                $('#ALL_VEHICLES').prop('checked', false);
+            }
+            if (paramId == 'VEHICLE_NAME') {
+                $('#GROUP_NAME').val('');
+                $('#ALL_VEHICLES').prop('checked', false);
+            }
+            if (paramId == 'ALL_VEHICLES') {
+                $('#GROUP_NAME').val('');
+                $('#VEHICLE_NAME').val('');
+            }
+            if ($('#GROUP_NAME').val() == '' && $('#VEHICLE_NAME').val() == '') {
+                $('#ALL_VEHICLES').prop('checked', true);
+            }
+        }
+    }
+
+    // Restricts input for each element in the set of matched elements to the given inputFilter.
+    (function($) {
+        $.fn.inputFilter = function(inputFilter) {
+            return this.on("input keydown keyup mousedown mouseup select contextmenu drop", function() {
+            if (this.value === "" || inputFilter(this.value)) {
+                this.oldValue = this.value;
+                this.oldSelectionStart = this.selectionStart;
+                this.oldSelectionEnd = this.selectionEnd;
+            } else if (this.hasOwnProperty("oldValue")) {
+                this.value = this.oldValue;
+                this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+            }
+            });
+        };
+    }(jQuery));
+
+    $('#UPPER_LIMIT').inputFilter(function(value) {
+        return /^-?\d*$/.test(value);
+    });
+    $('#LOWER_LIMIT').inputFilter(function(value) {
+        return /^-?\d*$/.test(value);
+    });
+    $('#ERROR_LIMIT').inputFilter(function(value) {
+        return /^\d*$/.test(value);
+    });
+    $('#VEHICLE_OFFLINE_TIMEOUT').inputFilter(function(value) {
+        return /^[1-9]\d*$/.test(value);
+    });
+    $('#REPEAT_DELAY').inputFilter(function(value) {
+        return /^\d*$/.test(value);
+    });
+
+</script>
+
+

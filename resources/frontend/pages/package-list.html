@@ -1,0 +1,173 @@
+@import fleetmanagement.frontend.model.*;
+@import fleetmanagement.frontend.security.SecurityRole;
+@args PackagesAndGroups vm, Security security
+@extends(main, activeNavigation: "/packages")
+@{PackageList packages = vm.packages;}
+@{GroupList groups = vm.groups;}
+<style>	
+	#package-search.active {
+		background: #dff0d8;
+	}
+	
+	tr.package td {
+		vertical-align: middle;
+		transition: all 0.5s;
+	}
+	
+	tr.package.hidden td {
+		border-top: 0px;
+		padding-top: 0px;
+		padding-bottom: 0px;
+	}
+	
+	.package-icon {
+		width: 20px;
+		height: 20px;
+		vertical-align: bottom;
+	}
+	
+	.package-category {
+		color: black;
+		background: #fafafa;
+	}
+	
+	.col-icon {
+		padding-right: 0px !important;
+		width: 28px;
+	}
+	
+	.col-action {
+		width: 28px;
+	}
+
+
+	tbody {
+		user-select: none; /* CSS3 (little to no support) */
+		-ms-user-select: none; /* IE 10+ */
+		-moz-user-select: none; /* Gecko (Firefox) */
+		-webkit-user-select: none; /* Webkit (Safari, Chrome) */
+	}
+
+	.selected-package {
+		background-color: #fafafa;
+	}
+</style>
+
+<img src="/img/background-packages.png" class="page-watermark" alt="">
+
+@section(sidebar) {
+	<h2>@i18n("general_actions")</h2>
+	
+	@restricted_link(security.hasWritePermission) {
+		<a href="/packages/upload">@i18n("packages_upload")</a>
+	}
+	<h2>@i18n("general_search")</h2>
+	<div class="input-group">
+		<span class="input-group-addon"><span class="glyphicon glyphicon-search"></span></span>
+		<input class="form-control" type="text" id="package-search" placeholder='@i18n("package_list_find_by_name")'>
+	</div>
+
+	<h3>
+		@i18n("group_list")
+	</h3>
+
+	<div class="group-list">
+		<a
+			href='/packages'>
+			@if (groups.selectedGroupId == null) {
+			<strong>@i18n("group_all")</strong>
+			} else {
+			@i18n("group_all")
+			}
+		</a>
+
+		@for(GroupList.Group g: groups) {
+		<div class="group-line">
+			<a
+				id="@g.key"
+				style="display: inline;"
+				@if (security.hasPackagesActionsPermission) {
+					ondrop='createAssignGroupDialog(event)'
+					ondragenter="allowDrop(event)"
+					ondragover="allowDrop(event)"
+				}
+				href='/packages/group/@g.key'>
+				@if (g.key.equals(groups.selectedGroupId)) {
+					<strong>@g.name</strong>
+				} else {
+					@g.name
+				}
+			</a>
+		</div>
+		}
+	</div>
+}
+
+<div class="modal fade" id="assignPackagesDialog" tabindex="-1" role="dialog" aria-labelledby="assignPackagesDialogLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button
+						type="button"
+						class="close"
+						data-dismiss="modal"
+						aria-label="Close"
+				>
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="assignPackagesDialogLabel">@i18n("package_list_assign_dialog_title")</h4>
+			</div>
+			<div class="modal-body">
+				<div>
+					<label>@i18n("package_list_assign_dialog_selected_packages")</label>
+					<label id="modalPackages"></label>
+				</div>
+				<div>
+					<label>@i18n("package_list_assign_dialog_selected_group")</label>
+					<label id="modalGroup"></label>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button
+						type="button"
+						id="assignButton"
+						class="btn btn-primary"
+						data-dismiss="modal"
+						onclick="assignGroup()"
+				>
+					@i18n("general_ok")
+				</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">@i18n("general_cancel")</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<h2>@i18n("general_packages")</h2>
+
+<div id="packages-snippet">
+	@invoke("package-list-template", packages, security)
+</div>
+
+<script>
+	$(document).ready(function() {
+		$("#packages-snippet").attr("data-url", window.location.pathname + "/ajax");
+    });
+
+    function confirmCancel() {
+		return window.confirm('@i18n("packages_cancel_tasks_question")');
+	}
+
+	@invoke("package-list.js")
+	@invoke("autoUpdate.js", "packages-snippet" )
+
+	function afterUpdate() {
+		filterPackageList();
+		highlightSelected();
+		restoreCollapsedState();
+	};
+
+	$(document).ready(function() {
+		filterPackageList();
+	});
+</script>

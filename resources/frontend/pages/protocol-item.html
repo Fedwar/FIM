@@ -1,0 +1,92 @@
+@import fleetmanagement.frontend.model.*;
+@extends(admin, activeNavigation: "/https", activeSidebarItem: "protocol_config_title")
+@args ProtocolList.ProtocolItemDetail vm
+
+<style> 
+    .col-label {
+        width: 200px;
+    }
+
+	.cert-form {
+		margin-top: 50px;
+	}
+	.form-control {
+    	height: auto;
+	}
+</style>
+
+@if (!vm.licence.isHttpsAvailable()) {
+<div class="section">@i18n("licence_https_addon_no_licence")</div>
+@return
+}
+
+<div class="section">
+
+    <h2>@i18n("protocol_config_title") / @vm.name</h2>
+
+	<table>
+		<tr>
+			<td class="col-label">@i18n("protocol_item_port")</td>
+			<td>@vm.port</td>
+		</tr>
+		<tr>
+			<td class="col-label">@i18n("protocol_item_state")</td>
+			<td>
+				<form method="post" enctype="multipart/form-data">
+				@if (vm.enabled) {
+				<img src="/img/success.png"> @i18n("protocol_item_state_enabled") 
+			    <input type="submit" name="disable" value="@i18n("protocol_item_disable")" onclick="return check_vehicle(@vm.vehicles.size());"/>	
+				} else {
+				<img src="/img/error.png"> @i18n("protocol_item_state_disabled")
+			    <input type="submit" name="enable" value="@i18n("protocol_item_enable")"/>	
+				}
+				</form>
+			</td>
+		</tr>
+		<tr>
+			<td class="col-label">@i18n("protocol_item_vehicles")</td>
+			<td>
+				@for(ProtocolList.Vehicle v: vm.vehicles) {
+				<div><a href="/vehicles/@v.key">@v.name</a>
+				}
+			</td>
+		</tr>
+	</table>
+	@if (!vm.enabled && vm.index > 0) {
+	<form method="post" enctype="multipart/form-data" class="cert-form">
+		@if (vm.errno > 0) {
+		<div class="alert">
+			@if (vm.errno == 1) {
+			@i18n("protocol_item_notice_cert_saved")
+			} else if (vm.errno == 2) {
+			@i18n("protocol_item_notice_cert_save_error")
+			}
+		</div>
+		}
+		<table>
+			<tr>
+				<td class="col-label">@i18n("protocol_item_key_title")</td>
+				<td><input type="file" name="key" class="form-control"/></td>
+			</tr>
+			<tr>
+				<td>@i18n("protocol_item_trust_title")</td>
+				<td><input type="file" name="trust" class="form-control"/></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td><input type="submit" name="cert" value="@i18n("protocol_item_save_cert")"/></td>
+			</tr>
+		</table>
+	</form>
+	}
+</div>
+
+<script>
+	function check_vehicle(n) {
+		if (n == 0) {
+			return true;
+		}
+
+		return confirm("@i18n("protocol_disable_confirmation")");
+	}
+</script>

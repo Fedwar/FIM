@@ -1,0 +1,195 @@
+@import fleetmanagement.frontend.model.*
+@args PackageDetails vm, Security security
+@{PackageDetails pkg = vm;}
+
+<style>
+	.running {
+		margin-bottom: 25px;
+	}
+	.running table {
+		float: left;
+		width: 90%
+	}
+	.col-label {
+		width: 200px;
+		vertical-align: top;
+	}
+	.operations {
+		display: inline-block;
+		float: right;
+	}
+	.col-icon {
+		width: 32px;
+	}
+	.col-icon span {
+		font-size: 1.5em;
+	}
+</style>
+
+<div class="package-overview round-corners">
+	<div class="package-overview-detail">
+		<div class="package-overview-label">@i18n("package_details_installed_on")</div>
+		<div class="package-overview-data">@pkg.installedCount / @pkg.vehicleCount</div>
+	</div>
+</div>
+<h1 id="package-name" >
+	<span>@pkg.name</span>
+	@if (pkg.groupId != null) {
+		<a href="/vehicles/group/@pkg.groupId"><span id="groupName" class="label label-info">@pkg.groupName</span></a>
+	}
+</h1>
+
+<table class="package-detail-table">
+	<tr>
+		<th>@i18n("package_details_type")</th>
+		<td>@pkg.type</td>
+	</tr>
+	<tr>
+		<th>@i18n("package_details_version")</th>
+		<td>@pkg.version</td>
+	</tr>
+	@if(pkg.slot != null) {
+	<tr>
+		<th>@i18n("package_details_start_of_period")</th>
+		<td>@pkg.startOfPeriod</td>
+	</tr>
+	<tr>
+		<th>@i18n("package_details_end_of_period")</th>
+		<td>@pkg.endOfPeriod</td>
+	</tr>
+	}
+	<tr>
+		<th>@i18n("package_details_size")</th>
+		<td>@pkg.size</td>
+	</tr>
+	@if(pkg.slot != null) {
+	<tr>
+		<th>@i18n("package_details_slot")</th>
+		<td>@pkg.slot</td>
+	</tr>
+	}
+</table>
+<div class="clear"></div>
+
+@if (pkg.groupId == null) {
+<h2>@i18n("package_details.installed_on")</h2>
+	@if (pkg.installedVehicles.isEmpty()) {
+		<span>@i18n("package_details.no_vehicles")</span>
+	} else {
+		<div id="installedVehicles">
+		@{PackageDetails.VehicleReference last1 = pkg.installedVehicles.get(pkg.installedVehicles.size() - 1)}
+		@for (PackageDetails.VehicleReference v : pkg.installedVehicles) {<span style="margin-right:10px;"><a href="/vehicles/@v.key">@v.name</a>@if(v != last1) {,}</span>}
+		</div>
+	}
+}
+
+<h2>@i18n("tasks_running_tasks")</h2>
+
+@if (pkg.installationInProgress) {
+<div class="running">
+	<table>
+		<tr>
+			<td class="col-label">@i18n("tasks_status")</td>
+			<td>
+				<div class="progress progress-striped active" style="width:40%">
+					<div class="progress-bar" style="width: @pkg.installationProgressPercent%">
+						<span>@pkg.installationProgressPercent%</span>
+					</div>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td class="col-label">@i18n("tasks_started_at")</td>
+			<td>@pkg.installationStartedAt.format("short-datetime")</td>
+		</tr>
+		<tr>
+			<td class="col-label">@i18n("tasks_estimated_completion")</td>
+			<td>@pkg.installationEstimatedCompletion</td>
+		</tr>
+		<tr>
+			<td class="col-label">@i18n("general_vehicles")</td>
+			<td colspan="2">
+				<div id="installationVehicles">
+				@{PackageDetails.VehicleReference last2 = pkg.installationVehicles.get(pkg.installationVehicles.size() - 1)}
+				@for (PackageDetails.VehicleReference v : pkg.installationVehicles) {<span style="margin-right:10px;"><a href="/vehicles/@v.key">@v.name</a>@if(v != last2) {,}</span>}
+				</div>
+			</td>
+		</tr>
+	</table>
+
+	<div class="operations">
+		<div class="btn-group btn-group-sm">
+			<a
+					class="btn btn-default button-show-logs"
+					href='/packages/@pkg.key/logs'
+					title='@i18n("tasks_show_logs")'
+			>
+				<span class="glyphicon glyphicon-list"></span>
+			</a>
+			@if(security.hasWritePermission) {
+				<a
+						class="btn btn-danger button-cancel"
+						title='@i18n("general_cancel")'
+						href='/packages/@pkg.key/cancel-all'
+				>
+					<span class="glyphicon glyphicon-stop"></span>
+				</a>
+			} else {
+				<a
+						class="btn btn-danger button-cancel disabled-link"
+						title='@i18n("permission_denied")'
+						href='/packages/@pkg.key/cancel-all'
+				>
+					<span class="glyphicon glyphicon-stop"></span>
+				</a>
+			}
+		</div>
+	</div>
+
+	<div class="clear"></div>
+</div>
+} else {
+<div>@i18n("package_details.no_running_tasks")</div>
+}
+
+<h2>@i18n("tasks_recent_tasks")</h2>
+@if (!pkg.completedTasks.isEmpty()) {
+<table class="table">
+	<thead>
+	<tr>
+		<th>@i18n("vehicle_tasks_status")</th>
+		<th >@i18n("vehicle_tasks_started")</th>
+		<th >@i18n("tasks_completed_at")</th>
+		<th>@i18n("general_vehicle")</th>
+		<th></th>
+	</tr>
+	</thead>
+	<tbody>
+	@for(VehicleDetails.CompletedTask task: pkg.completedTasks) {
+	<tr>
+		<td style="width: 24px"><div class="status-icon @task.statusCssClass" title="@task.status"></div></td>
+		<td class="nowrap ">@task.startDate.format("short-datetime")</td>
+		<td class="nowrap " style="width: 154px">@task.completionDate.format("short-datetime")</td>
+		<td><a href="/vehicles/@task.vehicleId">@task.vehicleName</a></td>
+		<td align="right">
+			<a
+					href="/vehicles/@task.vehicleId/tasks/@task.taskId"
+					class="btn btn-xs btn-default button-show-logs"
+					title='@i18n("tasks_logs")'
+			>
+				<span class="glyphicon glyphicon-list"></span>
+			</a>
+		</td>
+	</tr>
+	}
+	<tr>
+		<td></td>
+		<td ></td>
+		<td colspan="2"><a href='/packages/@pkg.key/tasks'>@i18n("tasks_show_all_tasks")</a></td>
+	</tr>
+	</tbody>
+</table>
+} else {
+	<p>@i18n("package_details.no_completed_tasks")</p>
+}
+

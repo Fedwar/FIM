@@ -1,0 +1,82 @@
+@import fleetmanagement.frontend.model.*
+@args String activeNavigation, Security security
+
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="shortcut icon" href="/favicon.ico" />
+	<link href="/css/bootstrap/bootstrap.min.css" type="text/css" rel="stylesheet" />
+	<link href="/css/bootstrap/bootstrap-theme.min.css" type="text/css" rel="stylesheet" />
+	<link href="/css/bootstrap/bootstrap-custom.css" type="text/css" rel="stylesheet" />
+	<link href="/css/generic.css" type="text/css" rel="stylesheet" />
+	<link href="/css/header.css" type="text/css" rel="stylesheet" />
+	<link href="/css/sidebar.css" type="text/css" rel="stylesheet" />
+	<link href="/css/jquery.webuiPopover.min.css" type="text/css" rel="stylesheet">
+	<title>GSP @i18n("general_fleet_management_system")</title>
+	<script src="/js/jquery-1.11.3.min.js"></script>
+	<script src="/js/jquery.webui-popover.min.js"></script>
+	<script src="/js/bootstrap/bootstrap.min.js"></script>
+	<meta charset="utf-8" />
+</head>
+<header>
+	<div class="gsp-logo"></div>
+	<h1>@i18n("general_fleet_management_system")</h1>
+	<nav id="primary-navigation">
+	
+		@def String getPath(String language) {
+			return "/img/" + language + ".png";
+		}
+		
+		@def renderFlag(String language) {
+			@assign("path"){@getPath(language)}
+			@assign("currentLanguage"){@i18n("local")}
+			@if (language.equals(currentLanguage)) {
+				<img src="@path" class="language-flag active" data-language="@language" />
+			} else {
+				<img src="@path" class="language-flag" data-language="@language"/>
+			}
+		}
+		
+		<div class="language-flags hidden-xs">
+			@renderFlag("de")
+			@renderFlag("en")
+		</div>
+		
+		<a href="/login/logout" class="logout hidden-xs">@i18n("login_perform_logout")</a>
+	
+		@def renderNavigation(String url, String intKey) {
+			@assign("name"){@i18n(intKey)}
+			@if (activeNavigation.equalsIgnoreCase(url)) {
+				<a href="@url" class="active">@name</a>
+			} else {
+				<a href="@url">@name</a>
+			}
+		}
+		@renderNavigation("/dashboard", "general_dashboard")
+		@renderNavigation("/vehicles", "general_vehicles")
+		@renderNavigation("/packages", "general_packages")
+		@renderNavigation("/admin", "general_administration")
+		<script>
+			$("#primary-navigation img").webuiPopover({content:'@i18n("langPopuoverInformation")', placement:'top-left'});
+		</script>
+	</nav>
+</header>
+<body>
+<aside class="sidebar hidden-xs hidden-sm">
+@render(sidebar)
+</aside>
+
+<main>
+	<script>
+		if ($(".sidebar").children().length == 0) {
+			$(".sidebar").css("display", "none");
+		}
+		else {
+			$("main").addClass("with-sidebar");
+		}
+	</script>
+	@render()
+</main>
+
+</body>
+</html>

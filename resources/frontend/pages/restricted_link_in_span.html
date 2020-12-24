@@ -1,0 +1,8 @@
+@args boolean hasPermission
+@if(hasPermission) {
+@renderBody()
+} else {
+<span class="disabled-link" title='@i18n("permission_denied")'>
+    @renderBody()
+</span>
+}

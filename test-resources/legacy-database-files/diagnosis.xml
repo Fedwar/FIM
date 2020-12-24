@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<diagnosisXml last-updated="2019-02-18T10:02:21.212+03:00[Europe/Moscow]">
+    <devices>
+        <device id="0x10211" type="FT95-1 RB" disabled="false" name="FT95-1 RBB">
+            <versions software="ST952A02.0" fontware="FT45.22"/>
+            <error-history>
+                <status start="2018-02-18T10:02:21.212+03:00[Europe/Moscow]"
+                        end="2018-03-18T10:02:21.212+03:00[Europe/Moscow]" category="FATAL">
+                    <message/>
+                </status>
+                <status start="2019-02-18T10:02:21.212+03:00[Europe/Moscow]" category="OK">
+                    <message/>
+                </status>
+            </error-history>
+        </device>
+    </devices>
+</diagnosisXml>

@@ -1,0 +1,524 @@
+@import fleetmanagement.frontend.model.*;
+@import static fleetmanagement.frontend.model.UploadFilterSettingsModel.*;
+@import fleetmanagement.backend.vehiclecommunication.upload.filter.ConditionType;
+@args UploadFilterSettingsModel vm
+@extends(admin, activeNavigation: "/admin", activeSidebarItem: "ad_filter_admin_link")
+@{String filterEditMemo = vm.filterEditMemo;}
+
+@if (!vm.licence.isUploadAvailable()) {
+    <p>@i18n("ad_filter_no_licence")</p>
+    @return
+}
+
+<link href="/css/admin-upload-filter.css" type="text/css" rel="stylesheet"/>
+
+<div class="modal fade" id="newFilterDialog" tabindex="-1" role="dialog" aria-labelledby="newFilterDialogLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="newFilterDialogLabel">@i18n("ad_filter_new_filter")</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="newFilterPathInput"
+                               class="col-sm-4 control-label">@i18n("ad_filter_directory")</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" id="newFilterPathInput" placeholder=''>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newFilterDescrInput"
+                               class="col-sm-4 control-label">@i18n("ad_filter_description")</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" id="newFilterDescrInput" placeholder=''>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-4 col-sm-7">
+                            <div class="checkbox">
+                                <label style="padding: 0;">
+                                    <input type="checkbox" id="newFilterEnableDelete">
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    @i18n("ad_filter_enable_delete")
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-4 col-sm-7">
+                            <span style="padding-right: 3px;">@i18n("ad_filter_delete_days")</span>
+                            <input style="width: 70px; display: inline; padding-left:" type="number" class="form-control"
+                                   id="newFilterDeleteDays" min="1" step="1", value="30">
+                            <span style="padding-left: 3px;">@i18n("ad_filter_days")</span>
+                        </div>
+                    </div>
+                </form>
+                @filterEditMemo.escapeHtml()
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="addFilterModalButton" class="btn btn-primary">
+                    @i18n("ad_filter_add_button")
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">@i18n("ad_filter_cancel_button")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editFilterDialog" tabindex="-1" role="dialog" aria-labelledby="newFilterDialogLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="editFilterDialogLabel">@i18n("ad_filter_edit_button")</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="newFilterPathInput"
+                               class="col-sm-4 control-label">@i18n("ad_filter_directory")</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" id="editFilterPathInput" placeholder=''>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editFilterDescrInput"
+                               class="col-sm-4 control-label">@i18n("ad_filter_description")</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" id="editFilterDescrInput" placeholder=''>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-4 col-sm-7">
+                            <div class="checkbox">
+                                <label style="padding: 0;">
+                                    <input type="checkbox" id="editFilterEnableDelete">
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    @i18n("ad_filter_enable_delete")
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-4 col-sm-7">
+                            <span style="padding-right: 3px;">@i18n("ad_filter_delete_days")</span>
+                            <input style="width: 70px; display: inline; padding-left:" type="number" class="form-control"
+                                   id="editFilterDeleteDays" min="1" step="1", value="30">
+                            <span style="padding-left: 3px;">@i18n("ad_filter_days")</span>
+                        </div>
+                    </div>
+                </form>
+                @filterEditMemo.escapeHtml()
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="editFilterModalButton" class="btn btn-primary">
+                    @i18n("ad_filter_ok_button")
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">@i18n("ad_filter_cancel_button")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<img src="/img/background-administration.png" class="page-watermark" alt="">
+
+<div class="alert alert-success">@i18n("ad_filter_save_success")</div>
+
+<div class="section">
+
+    <div>
+        <button id="save-button" class="btn btn-primary head-button">@i18n("ad_filter_save_changes")</button>
+        <a
+                href="#"
+                data-toggle="modal"
+                data-target="#newFilterDialog"
+                class="btn btn-primary head-button"
+        >
+            @i18n("ad_filter_add_button")
+        </a>
+    </div>
+
+    <h2 class="header">@i18n("ad_filter_settings")</h2>
+    <p>@vm.filtersUseMemo.raw()</p>
+
+    <div id="filters"></div>
+
+
+    <table id="conditionTable" style="display: none">
+        <tr>
+            <td><select class='form-control'></select></td>
+            <td><input type='text' name='conditionValue' class='form-control' oninput="setSaveChangesButtonState()"></td>
+            <td align="right">
+                <button class='btn btn-default' onClick="removeCondition(this)"
+                        title='@i18n("ad_filter_remove_condition")'><span class='glyphicon glyphicon-remove red'
+                                                                          aria-hidden='true'></span></button>
+            </td>
+        </tr>
+    </table>
+
+    <div class="panel panel-primary filterPanel" style="display: none">
+        <div class="panel-heading">@i18n("ad_filter")
+            <div>
+                <button class='btn btn-default' onClick="viewDir(this)" title='@i18n("ad_filter_browse_button")'><span
+                        class='glyphicon glyphicon-folder-open' aria-hidden='true'></span></button>
+                <button class='btn btn-default' onClick="editFilter(this)" title='@i18n("ad_filter_edit_button")'><span
+                        class='glyphicon glyphicon-pencil' aria-hidden='true'></span></button>
+                <button class='btn btn-default' onClick="filterUp(this)" title='@i18n("ad_filter_change_order")'><span
+                        class='glyphicon glyphicon-arrow-up' aria-hidden='true'></span></button>
+                <button class='btn btn-default' onClick="filterDown(this)" title='@i18n("ad_filter_change_order")'><span
+                        class='glyphicon glyphicon-arrow-down' aria-hidden='true'></span></button>
+                <button class='btn btn-default' onClick="removeFilter(this)" title='@i18n("ad_filter_remove_filter")'>
+                    <span class='glyphicon glyphicon-remove red' aria-hidden='true'></span></button>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="filter-field">
+                        <label>@i18n("ad_filter_directory"):</label>
+                        <div class="input-plaintext mightOverflow" name='filterDir' ></div>
+
+                    </div>
+                    <div class="filter-field">
+                        <label>@i18n("ad_filter_description"):</label>
+                        <div class="input-plaintext mightOverflow" name='filterDescr' ></div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="filter-field">
+                        <label>@i18n("ad_filter_enable_delete"):</label>
+                        <div class="input-plaintext" name='filterDelete' ></div>
+                    </div>
+                    <div class="filter-field">
+                        <label>@i18n("ad_filter_delete_for_days"):</label>
+                        <div class="input-plaintext" name='filterDeleteDays' ></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-default conditionsPanel">
+                <div class="panel-heading">
+                    @i18n("ad_filter_conditions")
+                    <button onClick="addConditionButton(this)" class='btn btn-default'
+                            title='@i18n("ad_filter_add_condition")'><span class='glyphicon glyphicon-plus blue'
+                                                                           aria-hidden='true'></span></button>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-condensed conditions">
+                        <thead>
+                        <tr>
+                            <th>@i18n("ad_filter_condition_type")</th>
+                            <th>@i18n("ad_filter_condition_match_string")
+                                <span class='glyphicon glyphicon-question-sign pattern-example'
+                                      aria-hidden='true'></span>
+                            </th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+	$(document).ready(function() {
+        conditionTemplate = $("#conditionTable tbody tr").first();
+        filterTemplate = $(".filterPanel").first();
+
+        @for (UploadFilter filter: vm.filters) {
+            @if (filter.delete.equals("Enabled")) {
+                filter = addFilter("@filter.directory", "@filter.description", '@i18n("ad_filter_enabled")', "@filter.deleteDays");
+            } else {
+                filter = addFilter("@filter.directory", "@filter.description", '@i18n("ad_filter_disabled")', "@filter.deleteDays");
+            }
+            conditions = filter.find('table tbody');
+            @for (UploadFilterCondition condition: filter.conditions) {
+                addCondition(conditions, "@condition.type.toString()", "@condition.matchString");
+            }
+        }
+
+        filterJson = toJson();
+
+        $("#save-button").prop("disabled", true);
+    });
+
+    var edited;
+    var conditionTemplate;
+    var filterTemplate;
+    var filterJson;
+
+    var conditionTypes = new Map();
+    @for (ConditionType conditionType: vm.conditionTypes) {
+        conditionTypes.set('@conditionType.toString()', "value='@conditionType.toString()'>@i18n(conditionType.getResourceKey())")
+    }
+
+    function filterUp(button) {
+        var $this = $(button).closest(".filterPanel");
+        if ($this.prev().length > 0) {
+            $this.slideToggle(400, function() {
+                $this.insertBefore($this.prev()).slideToggle(400)
+            });
+        }
+        setTimeout("setSaveChangesButtonState()", 500);
+    };
+
+    function filterDown(button) {
+        var $this = $(button).closest(".filterPanel");
+        if ($this.next().length > 0) {
+            $this.slideToggle(400, function() {
+                $this.insertAfter($this.next()).slideToggle(400)
+            });
+        }
+        setTimeout("setSaveChangesButtonState()", 500);
+    };
+
+    function addConditionButton(button) {
+        addCondition($(button).parent().parent().find(".conditions"), "", "");
+        setSaveChangesButtonState();
+    };
+
+    function removeFilter(button) {
+        $(button).closest(".filterPanel").remove();
+        setSaveChangesButtonState();
+    };
+
+    function removeCondition(button) {
+        $(button).parent().parent().remove();
+        setSaveChangesButtonState();
+    };
+
+    function addFilter(dir, descr, enableDelete, days) {
+        clone = filterTemplate.clone();
+        clone.find("div[name='filterDir']").text(dir);
+        clone.find("div[name='filterDescr']").text(descr);
+        clone.find("div[name='filterDelete']").text(enableDelete);
+        clone.find("div[name='filterDeleteDays']").text(days);
+        clone.appendTo( $("#filters") ).show();
+        $(".pattern-example").webuiPopover({content:'@vm.patternExamples.raw()', placement:'top-left'});
+
+        clone.find(".mightOverflow").mouseenter( function(){
+            var $this = $(this);
+            if(this.offsetWidth < this.scrollWidth && !$this.attr('title')){
+                $this.attr('title', $this.text());
+            }
+        });
+
+        return clone;
+    }
+
+    function editFilter(button) {
+        edited = $(button).closest(".filterPanel");
+        filterDescr = edited.find("div[name='filterDescr']").text();
+        filterDir = edited.find("div[name='filterDir']").text();
+        filterDelete = edited.find("div[name='filterDelete']").text();
+        filterDeleteDays = edited.find("div[name='filterDeleteDays']").text();
+        $('#editFilterDescrInput').val(filterDescr);
+        $('#editFilterPathInput').val(filterDir);
+        if (filterDelete == '@i18n("ad_filter_enabled")')
+            $('#editFilterEnableDelete').prop("checked", true);
+        else
+            $('#editFilterEnableDelete').prop("checked", false);
+        $('#editFilterDeleteDays').val(filterDeleteDays);
+        $('#editFilterDialog').modal('show')
+    };
+
+    $("#save-button").click(function() {
+        $.ajax({
+            type: "POST"
+            , url: "/admin/upload-filter"
+            , data: toJson()
+            , success: function (response) {
+                filterJson = toJson();
+                showSuccessMessage(response)
+            }
+            , error: function (response, status, error) {
+                showErrorMessage(response.responseText)
+            }
+        });
+        setTimeout("setSaveChangesButtonState()", 250);
+    });
+
+    function showSuccessMessage(message) {
+        alert = $(".alert");
+        alert.slideUp(400, function() {
+            alert.removeClass( "alert-danger" )
+            .addClass( "alert-success" )
+            .text(message)
+            .slideDown(400);
+        })
+    }
+
+    function showErrorMessage(message) {
+        alert = $(".alert");
+        alert.slideUp(400, function() {
+            alert.removeClass( "alert-success" )
+            .addClass( "alert-danger" )
+            .text(message)
+            .slideDown(400);
+        })
+    }
+
+    function viewDir(button) {
+        window.location.href = "/admin/upload-filter/root>" + $(button).closest(".filterPanel").find("div[name='filterDir']").first().text();
+    };
+    
+    function addFilterModalAction() {
+        filterDescrInput = $('#newFilterDescrInput');
+        filterPathInput = $('#newFilterPathInput');
+        if (filterPathInput.val().trim() === '') {
+            alert('@i18n("ad_filter_dir_required")');
+            return;
+        }
+
+        $('#newFilterDialog').modal('hide')
+        filterEnableDelete = $('#newFilterEnableDelete');
+        filterDays = $('#newFilterDeleteDays');
+        filterDaysVal = filterDays.val();
+        if ($(filterEnableDelete).is(':checked'))
+            filterEnableDeleteVal = '@i18n("ad_filter_enabled")'
+        else
+            filterEnableDeleteVal = '@i18n("ad_filter_disabled")'
+        if (isNaN(parseInt(filterDaysVal)))
+            filterDaysVal = "0";
+        addFilter(filterPathInput.val(), filterDescrInput.val(), filterEnableDeleteVal, filterDaysVal);
+        filterDescrInput.val("");
+        filterPathInput.val("");
+        $(filterEnableDelete).prop("checked", false);
+        filterDays.val("30");
+        setSaveChangesButtonState();
+    };
+
+	function editFilterModalAction() {
+        filterDescrInput = $('#editFilterDescrInput').val();
+        filterPathInput = $('#editFilterPathInput').val();
+        if (filterPathInput.trim() === '') {
+            alert('@i18n("ad_filter_dir_required")');
+            return;
+        }
+        $('#editFilterDialog').modal('hide')
+        filterEnableDelete = $('#editFilterEnableDelete');
+        filterDays = $('#editFilterDeleteDays').val();
+        if (isNaN(parseInt(filterDays)))
+            filterDays = "0";
+        if ($(filterEnableDelete).is(':checked'))
+            filterEnableDeleteVal = '@i18n("ad_filter_enabled")'
+        else
+            filterEnableDeleteVal = '@i18n("ad_filter_disabled")'
+        filterDescr = edited.find("div[name='filterDescr']").text(filterDescrInput)
+        filterDir = edited.find("div[name='filterDir']").text(filterPathInput)
+        edited.find("div[name='filterDelete']").text(filterEnableDeleteVal);
+        edited.find("div[name='filterDeleteDays']").text(filterDays);
+        setSaveChangesButtonState();
+    };
+
+    $("#editFilterModalButton").click(editFilterModalAction);
+
+    $("#addFilterModalButton").click(addFilterModalAction);
+	    
+    $(window).on('beforeunload', function(){
+        if (filterJson == toJson()) {
+            return
+        } else {
+            return "@i18n("ad_filter_changes_not_saved")";
+        }
+    });
+
+    function addCondition(conditions, type, matchString) {
+        clone = conditionTemplate.clone()
+        clone.find("input[name='conditionValue']").first().val(matchString);
+        clone.find("select").append(getOptions(type));
+        conditions.append(clone);
+    };
+
+    function getOptions(type) {
+        var html = "";
+        conditionTypes.forEach(function (value, key) {
+            html += "<option " + (type == key ? "selected " : "") + value + "</option>";
+        });
+        return html;
+    }
+
+    function logMapElements(value, key, map) {
+      console.log(key + ' '+  value);
+    }
+
+    function toJson() {
+        var filters = [];
+
+        $('#filters .filterPanel').each(function(i, obj) {
+            var conditions = [];
+            var filterElement = $(this);
+            filterElement.find(".conditions input[name='conditionValue']").each(function(i, obj) {
+                conditions[i] = {"matchString" : $(this).val()}
+            });
+
+            filterElement.find(".conditions select").each(function(i, obj) {
+                conditions[i].type = $(this).val()
+            });
+
+            var filterStatusVal;
+            if (filterElement.find("div[name='filterDelete']").text() == '@i18n("ad_filter_enabled")')
+                filterStatusVal = "Enabled"
+            else
+                filterStatusVal = "Disabled"
+
+            var filter = { "description" : filterElement.find("div[name='filterDescr']").text()
+                , "dir" : filterElement.find("div[name='filterDir']").text()
+                , "delete" : filterStatusVal
+                , "deleteDays" : filterElement.find("div[name='filterDeleteDays']").text()
+                , "conditions" : conditions
+            };
+            filters.push(filter);
+        });
+
+        return JSON.stringify(filters);
+    }
+
+    function setSaveChangesButtonState() {
+        if (filterJson === toJson())
+            $("#save-button").prop("disabled", true);
+        else
+            $("#save-button").prop("disabled", false);
+    }
+
+    let $newFilterDialog = $("#newFilterDialog");
+    let $editFilterDialog = $("#editFilterDialog");
+
+    $newFilterDialog.on("keypress", function(e) {
+        if (e.key === "Enter")
+            addFilterModalAction();
+    });
+    $editFilterDialog.on("keypress", function(e) {
+        if (e.key === "Enter")
+            editFilterModalAction();
+    });
+
+
+
+
+
+    $(document).on("keyup", function(e) {
+        let $saveButton = $("#save-button");
+        if (
+            e.key === "Enter"
+            && $saveButton.prop("disabled") === false
+            && !$('#newFilterDialog').is(":visible")
+            && !$('#editFilterDialog').is(":visible")
+        )
+            $saveButton.trigger("click");
+    });
+</script>
+
+

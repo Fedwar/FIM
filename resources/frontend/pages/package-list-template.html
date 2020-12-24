@@ -1,0 +1,160 @@
+@import fleetmanagement.frontend.model.*;
+@args PackageList vm, Security security
+@{PackageList packages = vm;}
+
+<style>
+	.collapse-expand {
+		text-align: right;
+		width: 16px;
+	}
+
+	.collapsed .caret {
+		transform: rotate(-90deg);
+	}
+
+	.package.collapsed {
+		display: none !important;
+	}
+	.package-category {
+		cursor: pointer;
+	}
+	.toggle-button-all {
+		cursor: pointer;
+	}
+
+</style>
+
+@if(packages.size() > 0) {
+	<table class="table">
+		<thead>
+			<tr>
+				<th class="collapse-expand toggle-button-all" onclick="toggleAll()">
+					<a href="javascript:void(0);" id="expand-all" class="collapsed">
+					<span class="caret"></span>
+				</a>
+				</th>
+				<th></th>
+				<th></th>
+				<th style="width: 250px" >@i18n("package_list.validity")</th>
+				<th style="width: 200px" >@i18n("package_list_assigned_to")</th>
+				<th style="width: 120px" >@i18n("package_list.statistic")</th>
+				<th style="width: 60px;" class="col-action"></th>
+			</tr>
+		</thead>
+		<tbody>
+	@for(PackageList.Category c: packages) {
+		<tr class="package-category collapsed" data-groupid="@c.name" onclick="toggleGroup(this)">
+			<td class="collapse-expand">
+				<a href="javascript:void(0);" class="toggle-tag" >
+					<span class="caret"></span>
+				</a>
+			</td>
+			<td class="col-icon"><img src="/img/@c.icon" class="package-icon" alt=""></td>
+			<td colspan="5">@c.name</td>
+		</tr>
+		
+		@for(PackageList.Entry p: c.packages) {
+		<tr
+				class="package collapsed"
+				data-groupid="@c.name"
+				onClick="packageClick(this)"
+				onmousedown="packageMouseDown(this)"
+				ondragstart="dragPackage(event)"
+				draggable="true"
+		>
+			<td></td>
+			@{int namespan = p.validityStatus == null ? 3 : 2}
+			<td colspan="@namespan" class="package-name">
+				<a
+						id="@p.key"
+						href="/packages/@p.key">@p.name
+				</a>
+			</td>
+			@if (p.validityStatus != null) {
+				<td width="100px">
+					@if (p.validityStatus == 0) {
+					<span class="label label-warning">
+						@i18n("package_list_no_validity_period")
+					</span>
+					}
+					@if (p.validityStatus == 1) {
+					<span class="label label-success">
+						@p.startOfPeriod-@p.endOfPeriod
+					</span>
+					}
+					@if (p.validityStatus == 2) {
+					<span class="label label-danger">
+						@p.startOfPeriod - @p.endOfPeriod
+					</span>
+					}
+				</td>
+			}
+			<td>
+				<span class="label label-info">
+					@if (p.groupName != null) {
+						@p.groupName
+					} else if (p.installedCount == 0 && !p.installationInProgress) {
+						@i18n("package.no_vehicle_or_group")
+					} else {
+						@i18n("package.individual_vehicles")
+					}
+				</span>
+			</td>
+			<td class="statistics-data">
+				<div>
+					@i18n("package_list_n_vehicles-count", p.installedCount, p.vehicleCount)
+					@if (p.installationInProgress) {
+						@if(security.hasWritePermission) {
+							<a
+									href="/packages/@p.key/cancel-all"
+									class="btn btn-danger button-cancel btn-xs"
+									onclick="return confirmCancel()"
+									title='@i18n("general_cancel")'
+							>
+								<span class="glyphicon glyphicon-stop"></span>
+							</a>
+						} else {
+							<a
+									href="#"
+									class="btn btn-default button-cancel btn-xs disabled-link"
+									disabled
+									title='@i18n("permission_denied")'
+							>
+								<span class="glyphicon glyphicon-stop"></span>
+							</a>
+						}
+					}
+				</div>
+			</td>
+			<td>
+				@if(p.downloadAvailable) {
+				<span @if(!security.hasPackagesActionsPermission) { class="disabled-link" title='@i18n("permission_denied")' }>
+					<a
+							class='btn btn-xs btn-default '
+							href="/packages/@p.key/content"
+							title='@i18n("package_details.actions.download")'
+					>
+						<span class="glyphicon glyphicon-download-alt"></span>
+					</a>
+				</span>
+				}
+				@{String buttonClass = security.hasWritePermission ? "btn-danger" : "btn-default"}
+				<span @if(!security.hasWritePermission) { class="disabled-link" title='@i18n("permission_denied")' }>
+					<a
+							onclick='deletePackage("@p.key", "@i18n("packages_delete_question")")'
+							class='btn btn-xs @buttonClass  delete-button'
+							title='@i18n("package_list_delete")'
+					>
+						<span class="glyphicon glyphicon-remove"></span>
+					</a>
+				</span>
+			</td>
+		</tr>
+		}
+	}
+	
+	</tbody>
+	</table>
+} else {
+	@i18n("package_list_is_empty")
+}

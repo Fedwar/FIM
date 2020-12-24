@@ -1,0 +1,282 @@
+@import fleetmanagement.frontend.model.*;
+@import fleetmanagement.frontend.model.PreprosessSettingsModel.SettingModel;
+@import fleetmanagement.backend.packages.PackageType;
+@args PreprosessSettingsModel vm
+@extends(admin, activeNavigation: "/admin", activeSidebarItem: "preprocess_link")
+
+<script src="/js/jquery.validate.min.js"></script>
+@validationLocale()
+
+<style>
+.section {
+    margin-bottom: 200px;
+}
+
+label.error {
+    color: red;
+}
+input.error {
+    border-color: red;
+}
+
+.head-button {
+    float: right;
+    margin-left: 8px;
+    margin-bottom: 14px;
+}
+
+.input-plaintext{
+    border: 0;
+    width: 100%;
+    padding-top: 7px;
+}
+
+.input-group[class*="col-"] {
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+.modal-field-dropdown {
+    max-height:200px;
+    overflow-y:auto;
+}
+
+.modalCheckbox {
+    text-align: left !important;
+}
+</style>
+
+<img src="/img/background-administration.png" class="page-watermark" alt="">
+
+<div class="modal fade" id="modalEditDialog" tabindex="-1" role="dialog" aria-labelledby="dialogLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" id="closeDialogButton" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="dialogLabel">@i18n("preprocess_modal_title")</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger modalAlert"></div>
+                <form class="form-horizontal" id="modalForm">
+                    <input class="form-control" id="modalId" name="id" type="hidden">
+                    @preprocessModalField("fileNamePattern", "preprocess_filename_pattern") {
+                    <input type="text" class="form-control enter-key-save" id="fileNamePattern" name="fileNamePattern" placeholder=''>
+                    }
+                    @preprocessModalField("command", "preprocess_command") {
+                    <input type="text" class="form-control enter-key-save" id="command" name="command" placeholder=''>
+                    }
+                    @preprocessModalField("options", "preprocess_options") {
+                    <input type="text" class="form-control enter-key-save" id="options" name="options" placeholder=''>
+                    }
+                    @preprocessModalField("options", "preprocess_package_type") {
+                    <select id="packageType" name="packageType" class="form-control">
+                        @for (PackageType type : vm.packageTypes) {
+                        <option value="@type.name()">@i18n(type.getResourceKey())</option>
+                        }
+                    </select>
+                    }
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="saveModalButton" onClick="save()" class="btn btn-primary">
+                    @i18n("preprocess_save_button")
+                </button>
+                <button type="button" id="cancelModalButton" class="btn btn-default" data-dismiss="modal">
+                    @i18n("preprocess_cancel_button")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@invoke("common/message-bar-hidden", "mainAlert", "" )
+
+<div class="section">
+    <div class="btn-group head-button" role="group">
+        <button type="button" id="addSetting" onClick="addSetting()" class="btn btn-primary">
+            @i18n("preprocess_add_setting_button")
+        </button>
+    </div>
+
+    <h2 class="header">@i18n("preprocess_settings_header")</h2>
+
+    <table class="table table-condensed">
+        <thead>
+        <tr>
+            <th>@i18n("preprocess_package_type")</th>
+            <th>@i18n("preprocess_filename_pattern")</th>
+            <th>@i18n("preprocess_command")</th>
+            <th>@i18n("preprocess_options")</th>
+            <th style="width:50px">@i18n("preprocess_action")</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for(SettingModel setting: vm.settings) {
+        <tr id="@setting.id">
+            <td>@setting.packageTypeCaption</td>
+            <td>@setting.fileNamePattern</td>
+            <td>@setting.command</td>
+            <td>@setting.options</td>
+            <td>
+                <div class="btn-group pull-right">
+                    <button
+                            type="button"
+                            class="btn btn-link dropdown-toggle btn-xs"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="#" onClick="edit(this)">@i18n("preprocess_setting_edit")</a>
+                        </li>
+                        <li>
+                            <a href="#" onClick="deleteSetting(this)">@i18n("preprocess_setting_delete")</a>
+                        </li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+        }
+        </tbody>
+    </table>
+
+</div>
+
+<script>
+
+    function edit(button) {
+        var $row = $(button).closest("tr");
+        resetModal()
+
+        $.ajax({
+            type: 'GET',
+            url: '/preprocess-settings/' + $row.attr("id"),
+            cache: false,
+            success: function (response, status, error) {
+                for (let key in response){
+                    if(response.hasOwnProperty(key)){
+                        $form.find("*[name='"+key+"']").val(response[key])
+                    }
+                }
+                $('#modalId').val(response.id);
+            },
+            error: function (response, status, error) {}
+        })
+
+        $('#modalEditDialog').modal('show')
+    };
+
+    function addSetting() {
+        resetModal();
+        $('#modalEditDialog').modal('show')
+    };
+
+    function resetModal() {
+        $form = $('#modalForm')
+        $form.trigger('reset');
+        $form.find('input').removeClass('error');
+        modalValidator.resetForm();
+    }
+
+    function save() {
+        if (modalValidator.form()) {
+            $.ajax({
+                type: "POST",
+                url: "/preprocess-settings",
+                data: toJson(),
+                success: reloadPage,
+                error: function (response, status, error) {
+                    showErrorMessage(response.responseText)
+                }
+            })
+        }
+    }
+
+    function deleteSetting(button) {
+        $.ajax({
+            url: "/preprocess-settings/" + $(button).closest("tr").attr("id"),
+            type: 'DELETE',
+            success: reloadPage,
+            error: function (response, status, error) {
+                showErrorMessage(response.responseText)
+            }
+        })
+    }
+
+    function reloadPage(){
+        $('#modalEditDialog').modal('hide')
+        window.location.reload()
+    }
+
+    function showSuccessMessage(message) {
+        showModalMessage(message, "alert-success")
+    }
+
+    function showErrorMessage(message) {
+        showModalMessage(message, "alert-danger")
+    }
+
+    function showModalMessage(message, type) {
+        alert = $(".modalAlert");
+        alert.slideUp(400, function() {
+            alert.removeClass()
+            .addClass( type )
+            .addClass( "modalAlert" )
+            .addClass( "alert" )
+            alert.text(message)
+            .slideDown(400);
+        })
+    }
+
+    function hideModalMessage() {
+        $(".modalAlert").hide();
+    }
+
+    function toJson() {
+        return JSON.stringify(getFormData($("#modalForm")))
+    }
+
+    function getFormData($form){
+        var unindexed_array = $form.serializeArray();
+        var indexed_array = {};
+
+        $.map(unindexed_array, function(n, i){
+            indexed_array[n['name']] = n['value'];
+        });
+
+        return indexed_array;
+    }
+
+    function setDropDownValue(element) {
+        let $element = $(element);
+        let $input = $element.closest(".modalField").find("input")
+        let $dataInput = $("#" + $input.attr("dataId"))
+        $input.val($element.text());
+        $dataInput.val($element.attr("data"));
+    }
+
+    $(".enter-key-save").on("keypress", function(e) {
+        if (e.key === "Enter")
+            $( "#saveModalButton" ).trigger( "click" );
+    });
+
+    var modalValidator;
+
+    $(document).ready(function() {
+      modalValidator = $("form#modalForm").validate({
+        lang: '@i18n("local")',
+        rules: {
+            command: 'required',
+            fileNamePattern: 'required'
+        }
+      });
+    });
+
+
+
+</script>
+
+

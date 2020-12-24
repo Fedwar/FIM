@@ -1,0 +1,65 @@
+@import fleetmanagement.frontend.model.*
+@args PackageInstallationLogs vm
+@extends(main, activeNavigation: "/packages")
+<style>
+	div.severity {
+		width: 24px;
+		height: 24px;
+		background: url(/img/info.png);
+	}
+	
+	.warning .severity {
+		background: url(/img/warning.png);
+	}
+	
+	.danger .severity {
+		background: url(/img/error.png);
+	}
+	
+</style>
+
+@section(sidebar) {
+	<h2>@i18n("general_actions")</h2>
+	<a href='/packages/@vm.packageId/logs/download'>@i18n("task_details_download_logs")</a>
+	<h2>@i18n("general_view")</h2>
+	<a href='/packages/@vm.packageId/tasks'>@i18n("task_details_task_list")</a>
+	<a href='/packages/@vm.packageId'>@i18n("package_tasks.package_details")</a>
+}
+
+<div>
+	<h2>@i18n("package_logs.header", vm.packageDescription)</h2>
+	<h3>@i18n("task_details_logs")</h3>
+	
+	<div style="overflow-x: auto">
+		<table class="table log-messages">
+			<thead>
+				<tr>
+					<th></th>
+					<th >@i18n("task_details_time")</th>
+					<th >@i18n("general_vehicle")</th>
+					<th>@i18n("task_details_message")</th>
+				</tr>
+			</thead>
+			<tbody>
+				@if(vm.logs) {
+					@for(LogMessage message: vm.logs) {
+					<tr class="@message.severityCss">
+						<td><div class="severity" title="@message.severityText"></div></td>
+						<td class="nowrap ">@message.dateTime</td>
+						<td class="nowrap ">
+							<a href="/vehicles/@message.vehicleId">@message.vehicleName</a>
+						</td>
+						<td>@message.message</td>
+					</tr>
+					}
+				} else {
+					<tr>
+						<td colspan="2"></td>
+						<td>@i18n("package_logs.no_messages")</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+</div>
+	

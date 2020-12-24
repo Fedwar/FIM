@@ -1,0 +1,58 @@
+@import fleetmanagement.frontend.model.*
+@args ConflictingTasksModal vm
+
+<style>
+	.modal-content table {
+		width: 100%;
+	}
+</style>
+
+<script>	
+	$(document).ready(function() {
+		$("#checkbox-toggle").click(function() {
+			$(':checkbox[name=tasks]').prop('checked', this.checked);
+		});
+		
+		$("#conflicting-task-modal").modal('show');
+	});
+</script>
+
+<div id="conflicting-task-modal" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<form method="post" action="/packages/@vm.packageKey/cancel-tasks">
+				<div class="modal-header">
+					<a href="/packages/@vm.packageKey" class="close"><span>&times;</span></a>
+					<h2 class="modal-title">@i18n("package_cancel_conflicting_header")</h2>
+				</div>
+				<div class="modal-body">
+					<p>@i18n("package_cancel_conflicting_body")</p>
+					<table class="table">
+						<thead>
+							<tr>
+								<th style="width: 30px;"><input id="checkbox-toggle"
+									type="checkbox" checked="checked"></th>
+								<th>@i18n("general_vehicle")</th>
+								<th>@i18n("general_package")</th>
+							</tr>
+						</thead>
+						<tbody>
+							@for(ConflictingTasksModal.ConflictingTask s: vm.conflicting) {
+							<tr>
+								<td><input type="checkbox" checked="checked" name="tasks"
+									value="@s.taskId" class="vehicle-checkbox"></td>
+								<td>@s.vehicle</td>
+								<td>@s.packageName</td>
+							</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+				<div class="modal-footer">
+					<a href="/packages/@vm.packageKey" class="btn btn-default">@i18n("general_close")</a>
+					<input type="submit" class="btn btn-primary" value="@i18n("package_cancel_selected_tasks")">
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

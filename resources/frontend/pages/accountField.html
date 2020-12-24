@@ -1,0 +1,7 @@
+@args String paramId, String labelText
+<div class="form-group col-sm-6">
+	<label for="@paramId" class="control-label">
+		@i18n(labelText)
+	</label>
+	@renderBody()
+</div>

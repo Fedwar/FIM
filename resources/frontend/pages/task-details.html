@@ -1,0 +1,62 @@
+@import fleetmanagement.frontend.model.*
+@args TaskDetails vm
+@extends(main, activeNavigation: "/vehicles")
+@{TaskDetails taskDetails = vm;}
+<style>
+	div.severity {
+		width: 24px;
+		height: 24px;
+		background: url(/img/info.png);
+	}
+	
+	.warning .severity {
+		background: url(/img/warning.png);
+	}
+	
+	.danger .severity {
+		background: url(/img/error.png);
+	}
+	
+</style>
+
+@section(sidebar) {
+	<h2>@i18n("general_actions")</h2>
+	<a href='/vehicles/@taskDetails.vehicleId/tasks/@taskDetails.id/log'>@i18n("task_details_download_logs")</a>
+	<h2>@i18n("general_view")</h2>
+	<a href='/vehicles/@taskDetails.vehicleId/tasks'>@i18n("task_details_task_list")</a>
+	<a href='/vehicles/@taskDetails.vehicleId'>@i18n("task_details_vehicle_details")</a>
+}
+
+<div>
+	<h2>@i18n("task_details_header-package-vehicle", taskDetails.packageDescription, taskDetails.vehicleDescription)</h2>
+	<h3>@i18n("task_details_logs")</h3>
+	
+	<div style="overflow-x: auto">
+		<table class="table log-messages">
+			<thead>
+				<tr>
+					<th></th>
+					<th >@i18n("task_details_time")</th>
+					<th>@i18n("task_details_message")</th>
+				</tr>
+			</thead>
+			<tbody>
+				@if(taskDetails.logs) {
+					@for(LogMessage message: taskDetails.logs) {
+					<tr class="@message.severityCss">
+						<td><div class="severity" title="@message.severityText"></div></td>
+						<td class="nowrap ">@message.dateTime</td>
+						<td>@message.message</td>
+					</tr>
+					}
+				} else {
+					<tr>
+						<td colspan="2"></td>
+						<td>@i18n("task_details_no_messages")</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+</div>
+	

@@ -1,0 +1,21 @@
+@import fleetmanagement.frontend.model.*
+@args DiagnosisNotAvailable vm
+@extends(main, activeNavigation: "/vehicles")
+<style>
+
+</style>
+
+@section(sidebar) {
+	<h2>@i18n("general_view")</h2>
+	<a href='/vehicles/@vm.vehicleId'>@i18n("diagnosis_details_vehicle_details")</a>
+}
+
+<div>
+	<h2>@i18n("diagnosis_details_diagnosis_for", vm.vehicleName)</h2>
+	<div class="alert alert-warning">
+		@i18n("diagnosis_details_diagnosis_not_available")
+	</div>
+	
+</div>
+	
+	

@@ -1,0 +1,157 @@
+@import fleetmanagement.frontend.model.*;
+@args Dashboard vm
+
+<style>
+	.section {
+		margin-bottom: 50px;
+	}
+	
+	.col-icon {
+		width: 32px;
+	}
+	
+	.col-icon span {
+		font-size: 1.5em;
+	}
+	
+	.col-icon img {
+		width: 24px;
+	}
+	
+	.col-name {
+		width: 300px;
+	}
+	
+	.diagnostic-error .vehicle {
+		display: inline-block;
+		width: 200px;
+		vertical-align: top;
+	}
+
+
+</style>
+
+<img src="/img/background-dashboard.png" class="page-watermark" alt="">
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="section running-installations">
+                <h2>@i18n("dashboard_tasks")</h2>
+                <table class="table table-no-header">
+                    @if(vm.runningInstallations.size() > 0) {
+                    @for(Dashboard.RunningInstallation i: vm.runningInstallations) {
+                    <tr>
+                        <td class="col-icon"><span class="glyphicon glyphicon-play-circle text-success"></span></td>
+                        <td class="col-name">
+                            <a href="/packages/@i.packageId">@i.name</a>
+                            @if (i.packageGroupId != null) {
+                                <span class="label label-info">@i.packageGroupName</span>
+                            } else {
+                                <span class="label label-info">@i18n("package.individual_vehicles")</span>
+                            }
+                        </td>
+                        <td >
+                            <div class="progress">
+                                <div class="progress-bar" style="width: @i.progress%;">
+                                    <span>@i18n("dashboard_progress", i.progress)</span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    }
+                    } else {
+                    <tr>
+                        <td class="col-icon"><img src="/img/success.png" alt=""></td>
+                        <td colspan="2">@i18n("dashboard_no_tasks")</td>
+                    </tr>
+                    }
+                </table>
+            </div>
+            <div class="section diagnostic-errors">
+                <h2>@i18n("dashboard_diagnostic_errors")</h2>
+                <table class="table table-no-header">
+                    @if (vm.diagnosticErrors.size() > 0) {
+                    @for(Dashboard.DiagnosticError error: vm.diagnosticErrors) {
+                    <tr>
+                        <td class="col-icon"><img src="/img/diagnostic_error.png" alt=""></td>
+                        <td class="col-name"><a href="/vehicles/@error.vehicleId" class="vehicle">@error.vehicleName</a>
+                        </td>
+                        <td class="text-danger">@error.description</td>
+                    </tr>
+                    }
+                    } else {
+                    <tr>
+                        <td class="col-icon"><img src="/img/success.png" alt=""></td>
+                        <td colspan="2">@i18n("dashboard_no_errors")</td>
+                    </tr>
+                    }
+                </table>
+            </div>
+            @if (vm.licence.isUploadAvailable()) {
+            <div>
+                <h2>
+                    <a href="/admin/upload-filter">
+                        @i18n("dashboard_new_datapackets-count", vm.dataPackets.newDataPacketsCount)
+                    </a>
+                </h2>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th class="col-icon"></th>
+                        <th class="col-name">@i18n("directory_browser_file_name")</th>
+                        <th>@i18n("directory_browser_file_size")</th>
+                        <th>@i18n("directory_browser_file_date")</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @for(FilterDirectory.FileModel fileModel : vm.dataPackets.newDataPackets) {
+                    <tr>
+                        <td>
+                            <a href="/admin/upload-filter/file>@fileModel.path">
+                                <span class='glyphicon glyphicon-file' aria-hidden='true'/>
+                            </a>
+                        </td>
+                        <td class="file-name">
+                            <div>
+                                <a href="/admin/upload-filter/file>@fileModel.path">
+                                    @fileModel.name
+                                </a>
+                            </div>
+                        </td>
+                        <td>@fileModel.length</td>
+                        <td>@fileModel.date</td>
+                    </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+            }
+        </div>
+
+
+        <div class="col-lg-offset-1 col-lg-3">
+            <div class="section">
+                <h2>@i18n("dashboard_statistics")</h2>
+                <ul class="list-unstyled">
+                    <li>@i18n("dashboard_vehicles-count", vm.statistics.vehicles)
+                    <li>@i18n("dashboard_packages-count_size", vm.statistics.packages, vm.statistics.totalPackageSize)
+                        @if (vm.licence.isUploadAvailable()) {
+                    <li>
+                        <a href="/admin/upload-filter">
+                            @i18n("dashboard_received_datapackets-count", vm.dataPackets.newDataPacketsCount)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/upload-filter">
+                            @i18n("dashboard_datapackets-count_total", vm.dataPackets.dataPacketsCount)
+                        </a>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+

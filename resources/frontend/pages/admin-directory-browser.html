@@ -1,0 +1,64 @@
+@import fleetmanagement.frontend.model.*;
+@args FilterDirectory vm
+@extends(admin, activeNavigation: "/admin")
+<img src="/img/background-administration.png" class="page-watermark" alt="">
+
+<style>
+	.col-icon {
+		padding-right: 0px !important;
+		width: 28px;
+	}
+	.col-name {
+		width: 300px
+	}
+</style>
+
+<div>
+	<h2>@vm.fullpath</h2>
+	<table class="table">
+		<thead>
+		<tr>
+			<th class="col-icon"></th>
+			<th class="col-name">@i18n("directory_browser_file_name")</th>
+			<th >@i18n("directory_browser_file_size")</th>
+			<th >@i18n("directory_browser_file_date")</th>
+		</tr>
+		</thead>
+		<tbody>
+		@if(vm.files) {
+			@for(FilterDirectory.FileModel f: vm.files) {
+			<tr>
+				<td>
+					@if (f.isDirectory) {
+					<a href="/admin/upload-filter/dir>@f.path">
+						<span class='glyphicon glyphicon-folder-open' aria-hidden='true'/>
+					</a>
+					} else {
+					<a href="/admin/upload-filter/file>@f.path">
+						<span class='glyphicon glyphicon-file' aria-hidden='true'/>
+					</a>
+					}
+				</td>
+				<td class="file-name">
+				<div>
+					@if (f.isDirectory) {
+						<a href="/admin/upload-filter/dir>@f.path">
+							@f.name
+						</a>
+					} else {
+						<a href="/admin/upload-filter/file>@f.path">
+							@f.name
+						</a>
+					}
+				</div>
+				</td>
+				<td>@f.length</td>
+				<td>@f.date</td>
+			</tr>
+			}
+		} else {
+		<tr><td colspan="4">@i18n("directory_browser_empty")</td></tr>
+		}
+	</tbody>
+</table>
+</div>

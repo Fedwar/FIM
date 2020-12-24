@@ -1,0 +1,12 @@
+@import fleetmanagement.frontend.model.*
+@args VehicleDetails vm, Security security
+@{VehicleDetails vehicleDetails = vm;}
+
+@if (vehicleDetails.showDiagnosis) {
+@if (vehicleDetails.diagnosticError != null) {
+<h2>@i18n("vehicle_diagnostic_errors")</h2>
+<a href="/vehicles/@vehicleDetails.id/diagnosis" id="diagnostic-error-link"><div class="alert alert-danger">@vehicleDetails.diagnosticError</div></a>
+}
+}
+
+@invoke("vehicle-details-tasks", vehicleDetails, security)

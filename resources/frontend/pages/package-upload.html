@@ -1,0 +1,59 @@
+@import fleetmanagement.frontend.model.*;
+@args UploadPackageViewModel vm
+@extends(main, activeNavigation: "/packages")
+<style>		
+	#during-upload, #on-error {
+		display: none;
+	}
+	#selectButton {
+	    vertical-align: inherit;
+	}
+	.form-control {
+    	height: auto;
+	}
+    .file-select {
+        position:absolute;
+        width:0;
+        height:0
+        opacity:0;
+    }
+</style>
+
+@section(sidebar) {
+<h2>@i18n("general_view")</h2>
+<a href="/packages">@i18n("packages_list")</a>
+}
+
+<div id="on-error" class="alert alert-danger">
+    <strong>@i18n("package_upload_error_body")</strong>
+    <p id="server-error"></p>
+</div>
+
+<h2>@i18n("packages_upload")</h2>
+<form action="/packages" method="post" enctype="multipart/form-data" class="form-horizontal">
+    <div class="form-group">
+        <div id="before-upload" class="col-sm-12">
+            <div class="col-sm-12">
+                <label class="control-label">@i18n("package_upload_file")</label>
+                <label for="package" id="selectButton" class="btn btn-primary">@i18n("package_upload_select_file")</label>
+                <span id="file-name"></span>
+            </div>
+            <span class="col-sm-12 help-block">@i18n("package_upload_file_like")</span>
+            <input class="file-select" type="file" name="package" id="package">
+            <input type="hidden" name="package-name" id="package-name">
+        </div>
+
+        <div class="col-sm-9" id="during-upload">
+            <div class="form-control">
+                <div class="progress">
+                    <div class="progress-bar">
+                        <span class="activity-label">@i18n("package_upload_uploading")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script src="/js/jquery.form.min.js"></script>
+<script src="/js/package-upload.rythm.js"></script>

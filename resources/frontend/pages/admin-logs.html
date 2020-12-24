@@ -1,0 +1,23 @@
+@import fleetmanagement.frontend.model.*;
+@args Admin vm
+@extends(admin, activeNavigation: "/admin", activeSidebarItem: "admin_logs")
+
+<style>
+	.download-icon {
+		vertical-align: middle;
+		margin: 6px;
+	}
+</style>
+
+<img src="/img/background-administration.png" class="page-watermark" alt="">
+
+<div class="section">
+	<h2>@i18n("admin_functions")</h2>
+		<div class="nowrap">
+			<a href="/admin/logs"><img class="download-icon" src="/img/log-download.png">@i18n("admin_dl_all_logs")</a>
+		</div>
+		<div class="nowrap">
+			<a href="/admin/activity-logs"><img class="download-icon" src="/img/log-download.png">@i18n("admin_dl_activity_logs")</a>
+		</div>
+	</div>
+</div>

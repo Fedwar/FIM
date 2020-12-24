@@ -1,0 +1,47 @@
+@import fleetmanagement.frontend.model.*;
+@args AdminAutoSync vm
+@extends(admin, activeNavigation: "/admin", activeSidebarItem: "admin_autosync")
+
+<script src="/js/save-changes-button-state-switcher.js"></script>
+
+<img src="/img/background-administration.png" class="page-watermark" alt="">
+
+@if (!vm.licence.isAutoPackageSyncAvailable()) {
+<p>@i18n("licence_auto_package_sync_addon_no_licence")</p>
+@return
+}
+
+<div class="section">
+	<h2>@i18n("admin_autosync_header")</h2>
+	<p>@i18n("admin_autosync_details1")</p>
+	<p>@i18n("admin_autosync_details2")</p>
+	<form class="form-horizontal" method="post" action='/admin/auto-sync'>
+		<div class="form-group">
+			@for (String packageType: vm.packageTypes.keySet()) {
+			<div class="col-sm-offset-1 col-sm-11">
+				<div class="checkbox">
+					<label>
+						@if (vm.packageTypes.get(packageType)) {
+							<input name="@packageType" type="checkbox" checked onchange="setSaveChangesButtonState()">
+								@i18n(packageType)
+						} else {
+							<input name="@packageType" type="checkbox" onclick="setSaveChangesButtonState()">
+								@i18n(packageType)
+						}
+					</label>
+				</div>
+			</div>
+			}
+		</div>
+		<div class="form-group">
+			<div class="col-sm-offset-1 col-sm-11">
+				<button
+						type="submit"
+						class="btn btn-primary save-changes-button"
+				>
+					@i18n("admin_garbage_collector_save_changes")
+				</button>
+			</div>
+		</div>
+	</form>
+</div>

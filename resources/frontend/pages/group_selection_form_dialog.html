@@ -1,0 +1,103 @@
+<script src="/js/group_selection_form_dialog.js"></script>
+
+<div
+        class="modal fade"
+        id="group-selection-form-dialog"
+        tabindex="-1" role="dialog"
+        aria-labelledby="group-selection-form-dialog-label"
+>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                >
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="group-selection-form-dialog-label"></h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <form id="group-selection-form" class="selection-form">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr id="select-all-groups-row">
+                                <th style="width: 24px">
+                                    <label for="select-all-groups"></label>
+                                    <input type="checkbox" id="select-all-groups">
+                                </th>
+                                <th style="font-weight: normal !important;">@i18n("general_select_all")</th>
+                            </tr>
+                            <tr id="no-available-groups-row">
+                                <th style="font-weight: normal !important;">
+                                    @i18n("group_selection_form_no_available_groups")
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody id="groups-body"></tbody>
+                        </table>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button
+                        id="start-assigning-button"
+                        class="btn btn-primary"
+                        type="button"
+                >
+                    @i18n("general_ok")
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">@i18n("general_cancel")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div
+        class="modal fade"
+        id="group-selection-form-confirm-dialog"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="group-selection-form-confirm-dialog-label"
+>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                >
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="group-selection-form-confirm-dialog-label"></h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <label id="modal-assign-item-title"></label>
+                    <label id="modal-assign-item"></label>
+                </div>
+                <div>
+                    <label>@i18n("group_selection_form_confirm_dialog_selected_groups")</label>
+                    <label id="modal-groups"></label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button
+                        type="button"
+                        id="confirm-button"
+                        class="btn btn-primary"
+                        data-dismiss="modal"
+                        onclick='confirmAction()'
+                >
+                    @i18n("general_ok")
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">@i18n("general_cancel")</button>
+            </div>
+        </div>
+    </div>
+</div>

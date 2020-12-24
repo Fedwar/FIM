@@ -1,0 +1,18 @@
+@import fleetmanagement.frontend.model.*;
+@extends(main, activeNavigation: "/about")
+@args About vm
+
+<style>
+    .software-version {
+        text-indent: 10px;
+    }
+</style>
+
+<h2>@i18n("about_FIM-Server")</h2>
+<li class="list-unstyled software-version">@i18n("about_version-software", vm.softwareVersion)
+
+@section(sidebar) {
+    <h2>@i18n("general_about")</h2>
+}
+
+@render()

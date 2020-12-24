@@ -1,0 +1,180 @@
+@import fleetmanagement.frontend.model.*;
+@args SettingsModel vm
+@extends(admin, activeNavigation: "/admin", activeSidebarItem: "settings_link")
+
+<script src="/js/save-changes-button-state-switcher.js"></script>
+
+<style>
+.control-label {
+    padding-top: 5px !important;
+}
+</style>
+
+<img src="/img/background-administration.png" class="page-watermark" alt="">
+
+@invoke("common/message-bar-hidden")
+
+<div class="section">
+    <h2>@i18n("settings_header")</h2>
+    <form class="form-horizontal" method="post" action='/settings'>
+        @for (SettingsModel.Setting setting: vm.settings) {
+        <div id="@setting.id-form-group" class="form-group">
+            <label for="@setting.id"
+                   class="control-label pull-left col-sm-3">@i18n(setting.name)
+            </label>
+            @if (setting.id == "DIAGNOSIS_DATA_LIMIT" || setting.id == "OPERATIONAL_DATA_LIMIT") {
+                <div class="col-sm-2">
+                    <div class="input-group">
+                        <input
+                                id="@setting.id"
+                                name="@setting.id"
+                                type="text"
+                                class="form-control"
+                                oninput="onInput('@setting.id')"
+                                title='@i18n("setting_data_limit_hint")'
+                        >
+                        <span class="input-group-addon">Gb</span>
+                    </div>
+                </div>
+            } else {
+                <div class="col-sm-6">
+                    <input
+                            id="@setting.id"
+                            name="@setting.id"
+                            type="text"
+                            class="form-control"
+                            oninput="onInput('@setting.id')"
+                            title='@i18n("setting_path_hint")'
+                    >
+                    <small id="@setting.id-feedback" class="help-block"></small>
+                </div>
+            }
+        </div>
+        }
+
+        <button
+                type="button"
+                id="saveModalButton"
+                onClick="saveSettings()"
+                class="btn btn-primary save-changes-button"
+        >
+            @i18n("settings_save_changes")
+        </button>
+
+    </form>
+</div>
+
+<script type="text/javascript">
+
+    function showSuccessMessage(message) {
+        alert = $(".alert");
+        alert.slideUp(400, function() {
+            alert.removeClass( "alert-danger" )
+            .addClass( "alert-success" )
+            .text(message)
+            .slideDown(400);
+        })
+    }
+
+    function showErrorMessage(message) {
+        alert = $(".alert");
+        alert.slideUp(400, function() {
+            alert.removeClass( "alert-success" )
+            .addClass( "alert-danger" )
+            .text(message)
+            .slideDown(400);
+        })
+    }
+
+    function setError(id, message) {
+        $('#' + id + '-feedback').text(message);
+        $('#' + id + '-form-group').addClass('has-error');
+    }
+
+    function clearError(id) {
+        $('#' + id + '-feedback').text('');
+        $('#' + id + '-form-group').removeClass('has-error');
+    }
+
+    function showValidationErrors(messages) {
+        @for (SettingsModel.Setting setting: vm.settings) {
+            if (messages.@setting.id) {
+                setError('@setting.id', messages.@setting.id)
+            } else {
+                clearError('@setting.id')
+            }
+        }
+    }
+
+    function onInput(id) {
+        if ($('#' + id + '-form-group').hasClass('has-error')) {
+            clearError(id);
+        }
+        setSaveChangesButtonState();
+    }
+
+    function toJson() {
+        var settings = [];
+
+        $("input").each(function(i, obj) {
+            setting = { "id" : obj.id
+                , "value" : obj.value
+            };
+            settings.push(setting);
+        });
+
+        return JSON.stringify(settings)
+    }
+
+    function saveSettings() {
+        $.ajax({
+            type: "POST",
+            url: "/settings",
+            data: toJson()
+            , success: function (response) {
+                showSuccessMessage(response)
+            }
+            , error: function (response, status, error) {
+                showValidationErrors(response.responseJSON)
+            }
+        });
+        initStartFormState();
+        setSaveChangesButtonState();
+    }
+
+    // Restricts input for each element in the set of matched elements to the given inputFilter.
+    (function($) {
+        $.fn.inputFilter = function(inputFilter) {
+            return this.on("input keydown keyup mousedown mouseup select contextmenu drop", function() {
+            if (this.value === "" || inputFilter(this.value)) {
+                this.oldValue = this.value;
+                this.oldSelectionStart = this.selectionStart;
+                this.oldSelectionEnd = this.selectionEnd;
+            } else if (this.hasOwnProperty("oldValue")) {
+                this.value = this.oldValue;
+                this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+            }
+            });
+        };
+    }(jQuery));
+
+    $('#DIAGNOSIS_DATA_LIMIT').inputFilter(function(value) {
+        return (value.match(/,/g) || []).length <= 1 && /^[\d,]+$/.test(value);
+    });
+    $('#OPERATIONAL_DATA_LIMIT').inputFilter(function(value) {
+        return (value.match(/,/g) || []).length <= 1 &&  /^[\d,]+$/.test(value);
+    });
+
+    @for (SettingsModel.Setting setting: vm.settings) {
+        @if(setting.value != null) {
+            $('#@setting.id').val('@setting.value');
+        } else {
+            $('#@setting.id').val('');
+        }
+    }
+
+    $(document).on("keypress", function(e) {
+        if (e.key === "Enter" && $(".save-changes-button").prop("disabled") === false)
+            saveSettings();
+    });
+</script>

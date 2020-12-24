@@ -1,0 +1,42 @@
+@import fleetmanagement.frontend.model.*;
+@args AdminGC vm
+@extends(admin, activeNavigation: "/admin", activeSidebarItem: "admin_garbage_collector")
+
+<script src="/js/save-changes-button-state-switcher.js"></script>
+
+<img src="/img/background-administration.png" class="page-watermark" alt="">
+
+<div class="section">
+	<h2>@i18n("admin_garbage_collector")</h2>
+	<p>@i18n("admin_garbage_collector_details1")</p>
+	<p>@i18n("admin_garbage_collector_details2")</p>
+	<form class="form-horizontal" method="post" action='/admin'>
+		<div class="form-group">
+			@for (String packageType: vm.packageTypes.keySet()) {
+			<div class="col-sm-offset-1 col-sm-11">
+				<div class="checkbox">
+					<label>
+						@if (vm.packageTypes.get(packageType)) {
+							<input name="@packageType" type="checkbox" checked onclick="setSaveChangesButtonState()">
+								@i18n(packageType)
+						} else {
+							<input name="@packageType" type="checkbox" onclick="setSaveChangesButtonState()">
+								@i18n(packageType)
+						}
+					</label>
+				</div>
+			</div>
+			}
+		</div>
+		<div class="form-group">
+			<div class="col-sm-offset-1 col-sm-11">
+				<button
+						type="submit"
+						class="btn btn-primary save-changes-button"
+				>
+					@i18n("admin_garbage_collector_save_changes")
+				</button>
+			</div>
+		</div>
+	</form>
+</div>

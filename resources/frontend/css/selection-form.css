@@ -1,0 +1,11 @@
+label {
+    font-weight: normal !important;
+}
+
+.selection-form td {
+    cursor: pointer;
+}
+
+.selection-form tr.selected {
+    background-color: #dff0d8 !important;
+}

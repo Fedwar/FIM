@@ -1,0 +1,148 @@
+@import fleetmanagement.frontend.model.*
+@args DiagnosisDetails vm
+
+@if (vm.lastUpdated.isEmpty()) {
+<div>
+	<h2>@i18n("diagnosis_details_diagnosis_for", vm.vehicleName)</h2>
+	<div class="alert alert-warning">
+		@i18n("diagnosis_details_diagnosis_not_available")
+	</div>
+</div>
+@return
+}
+
+<div>
+	<h2 class="pull-left">@i18n("diagnosis_details_diagnosis_for", vm.vehicleName)</h2>
+	<h2 class="pull-right">
+		<small>
+			<span class="label label-default">@i18n("diagnosis_details_last_updated", vm.lastUpdated)</span>
+			<span class="label label-danger">@i18n("diagnosis_details_defective_count", vm.defectiveDevicesCount)</span>
+			<span class="label label-warning">@i18n("diagnosis_details_degraded_count", vm.degradedDevicesCount)</span>
+			<span class="label label-success">
+				@i18n("diagnosis_details_operational_count", vm.operationalDevicesCount)
+			</span>
+		</small>
+	</h2>
+	<table class="table table-condensed pull-left">
+		<thead>
+			<tr>
+				<th class="collapse-expand toggle-button-all" onclick="toggleAll()">
+					<a href="javascript:void(0);" id="expand-all" class="collapsed">
+						<span class="caret"></span>
+					</a>
+				</th>
+				<th>@i18n("diagnosis_details_device")</th>
+				<th>@i18n("diagnosis_details_location")</th>
+				<th>@i18n("diagnosis_details_version")</th>
+				<th>@i18n("diagnosis_details_status")</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+
+		@def void renderStatusRow(String tdClass, String message, String symbolClass, DiagnosisDetails.Device d) {
+			<td class=@tdClass>
+				@for(DiagnosisDetails.DeviceState ds: d.currentState) {
+					<div
+							@if (ds.currentStatusSince) {
+								title='@i18n(message, ds.currentStatusSince)'
+							}
+					>
+						<span class="@symbolClass"></span>
+						@i18n("diagnosis_details_status_description_and_code", ds.message, ds.code)
+					</div>
+				}
+
+				@if (d.currentState.size() == 0) {
+					<span class="@symbolClass"></span>
+				}
+			</td>
+		}
+
+			@def void renderDeviceRow(DiagnosisDetails.Device d, boolean collapsed) {
+				<tr class="device @if (collapsed) {collapsed} else {}" data-groupid="@d.type">
+					<td></td>
+					<td>@d.name</td>
+					<td>@d.location</td>
+					<td>
+						@for(String v: d.versions) {
+						<div>@v</div>
+						}
+					</td>
+					@if (d.isError) {
+						@renderStatusRow("danger", "diagnosis_details_defective_since", "glyphicon glyphicon-remove-sign text-danger", d)
+                    } else if (d.isDegraded) {
+						@renderStatusRow("warning", "diagnosis_details_degraded_since", "glyphicon glyphicon-exclamation-sign text-warning", d)
+					} else if (d.isUnknown) {
+						@renderStatusRow("active", "diagnosis_details_unknown_since", "glyphicon glyphicon-question-sign text-secondary", d)
+					} else if (d.containsStateWithNonNullCode) {
+						@renderStatusRow("", "diagnosis_details_defective_since", "glyphicon glyphicon-info-sign text-info", d)
+					} else {
+						<td><span class="glyphicon glyphicon-ok-sign text-success"></span>
+					}
+					<td>
+						<a
+								href="diagnosis/@d.id"
+								type="button"
+								class="btn btn-default btn-xs"
+								title='@i18n("diagnosis_details_error_history")'
+						>
+							<span class="glyphicon glyphicon-time"></span>
+						</a>
+					</td>
+				</tr>
+			}
+			@for(DiagnosisDetails.DeviceGroup g: vm.groups) {
+				@if (g.containsMultipleDevices()) {
+					<tr class="device-group collapsed" data-groupid="@g.deviceType" onclick="toggleGroup(this)">
+						<td class="collapse-expand">
+							<a href="javascript:void(0);"  class="toggle-tag">
+								<span class="caret"></span>
+							</a>
+						</td>
+						<td><a href="javascript:void(0);" >@(g.devices.size())x @g.deviceType</a></td>
+						<td></td>
+						<td>
+							@for(String v: g.versions) {
+								<div>@v</div>
+							}
+						</td>
+						<td class="td-status">
+							@if (g.devicesWithErrors > 0) {
+								<div class="status bg-danger">
+									<span class="glyphicon glyphicon-remove-sign text-danger"></span>
+									@i18n("diagnosis_details_devices_with_errors", g.devicesWithErrors)
+								</div>
+							}
+							@if (g.devicesWithDegradedStatus > 0) {
+								<div class="status bg-warning">
+									<span class="glyphicon glyphicon-exclamation-sign text-warning"></span>
+									@i18n("diagnosis_details_devices_with_degraded_status", g.devicesWithDegradedStatus)
+								</div>
+							}
+							@if (g.devicesWithUnknownStatus > 0) {
+								<div class="status bg-secondary">
+									<span class="glyphicon glyphicon-question-sign text-secondary"></span>
+									@i18n("diagnosis_details_devices_with_unknown_status", g.devicesWithUnknownStatus)
+								</div>
+							}
+							@if (g.devicesWithErrors + g.devicesWithDegradedStatus + g.devicesWithUnknownStatus == 0) {
+								<div>
+									<span class="status glyphicon glyphicon-ok-sign text-success"></span>
+								</div>
+							}
+						</td>
+						<td></td>
+					</tr>
+					@for(DiagnosisDetails.Device d: g.devices) {
+						@renderDeviceRow(d, true)
+					}
+				} else {
+					@renderDeviceRow(g.devices.get(0), false)
+				}
+			}
+		</tbody>
+	</table>
+</div>
+	
+	

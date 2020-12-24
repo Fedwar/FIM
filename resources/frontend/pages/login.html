@@ -1,0 +1,96 @@
+@import fleetmanagement.frontend.model.*;
+@args Login vm
+
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="shortcut icon" href="/favicon.ico" />
+	<link href="/css/bootstrap/bootstrap.min.css" type="text/css" rel="stylesheet" />
+	<link href="/css/bootstrap/bootstrap-theme.min.css" type="text/css" rel="stylesheet" />
+	<link href="/css/bootstrap/bootstrap-custom.css" type="text/css" rel="stylesheet" />
+	<link href="/css/generic.css" type="text/css" rel="stylesheet" />
+	<link href="/css/header.css" type="text/css" rel="stylesheet" />
+	<link href="/css/sidebar.css" type="text/css" rel="stylesheet" />
+	<link href="/css/jquery.webuiPopover.min.css" type="text/css" rel="stylesheet">
+	<title>GSP @i18n("general_fleet_management_system")</title>
+	<script src="/js/jquery-1.12.4.min.js"></script>
+	<script src="/js/jquery.webui-popover.min.js"></script>
+	<script src="/js/bootstrap/bootstrap.min.js"></script>
+	<meta charset="utf-8" />
+	<style>
+		html, body {
+			height: 100vh;
+		}
+		
+		.left-bar {
+			background-color: #00244E;
+			color: white;
+			text-align: right;
+			height: 100vh;
+			position: relative;
+			overflow: hidden;
+			z-index: 10;
+		}
+		
+		.right-bar {
+			
+		}
+		
+		.left-bar h1 {
+			font-weight: normal;
+			font-size: 1.5rem;
+		}
+		
+		.spacer-top {
+			height: 300px;
+		}
+		
+		.gsp-globe {
+			position: absolute;
+			left: -140px;
+			bottom: -140px;
+			width: 650px;
+			opacity: 0.5;
+			z-index: -10;
+		}
+
+	</style>
+</head>
+<body>
+<div class="container-fluid">
+	<div class="row">
+		<div class="left-bar col-sm-3 ">
+			<div class="spacer-top"></div>
+			<h1>GSP<br>@i18n("general_fleet_management_system")</h1>
+			<img class="gsp-globe" src="/img/gsp-globe-large.jpg">
+		</div>
+
+		<div class="right-bar col-sm-4">
+			<div class="spacer-top "></div>
+			<h1 class="visible-xs">GSP<br>@i18n("general_fleet_management_system")</h1>
+			<h2>@i18n("login_header")</h2>
+			<p id="status-message" class="text-danger">@vm.error</p>
+			<form method="post" action="/login">
+				<div class="form-group">
+					<div class="input-group">
+						<span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+						<input type="text" name="username" class="form-control" title=" " placeholder="@i18n("login_username")" required autofocus
+						oninvalid="this.setCustomValidity('@i18n("login_username_required")')" oninput="this.setCustomValidity('')">
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="input-group">
+						<span class="input-group-addon"><span class="glyphicon glyphicon-lock"></span></span>
+						<input type="password" name="password" class="form-control" title=" " placeholder="@i18n("login_password")" required
+						oninvalid="this.setCustomValidity('@i18n("login_password_required")')" oninput="this.setCustomValidity('')">
+					</div>
+				</div>
+				<!-- <div class="checkbox"><label><input type="checkbox" name="keep"> Keep me logged in on this computer</label></div> -->
+				<button name="submit" type="submit" class="btn btn-default">@i18n("login_perform_login")</button>
+			</form>
+		</div>
+	</div>
+</div>
+	
+</body>
+</html>

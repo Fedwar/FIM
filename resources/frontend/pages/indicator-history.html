@@ -1,0 +1,48 @@
+@import fleetmanagement.frontend.model.*
+@import fleetmanagement.backend.operationData.*
+@args IndicatorHistory vm
+@extends(main, activeNavigation: "/vehicles")
+
+<style>
+	.table-nonfluid {
+	   width: auto !important;
+	}
+
+	.table-nonfluid td {
+	   padding-right: 20px !important;
+	}
+</style>
+
+@section(sidebar) {
+	<h2>@i18n("general_view")</h2>
+	<a href='/vehicles/@vm.vehicleId'>@i18n("operation_data_vehicle_details")</a>
+}
+
+<h2>@i18n("operation_data_for", vm.vehicleName)</h2>
+<h2>@i18n("operation_data_indicator_history_for", vm.indicatorId)</h2>
+
+<table class="table table-condensed table-nonfluid">
+	<thead>
+	<tr>
+		<th>@i18n("operation_data_indicator_value")</th>
+		<th>@i18n("operation_data_indicator_unit")</th>
+		<th style="width:50px">@i18n("operation_data_indicator_updated")</th>
+	</tr>
+	</thead>
+	<tbody>
+	@if(vm.history)
+		@for(IndicatorHistory.History history: vm.history) {
+		<tr>
+			<td class="nowrap">@history.value</td>
+			<td class="nowrap">@vm.indicatorUnit</td>
+			<td class="nowrap">@history.timeStamp.format("medium-datetime")</td>
+		</tr>
+		}
+	} else {
+	<tr>
+		<td colspan="2"></td>
+		<td>@i18n("history_not_available")</td>
+	</tr>
+	}
+	</tbody>
+</table>

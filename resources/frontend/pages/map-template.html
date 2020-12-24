@@ -1,0 +1,30 @@
+@import fleetmanagement.frontend.model.*;
+@args MapAndGroups vm
+@{MapViewModel mapView = vm.mapView;}
+
+function initMarkers() {
+    let selectedVehicleBefore = selectedVehicle;
+    allMarkers.forEach(function (marker, name) {
+        map.removeLayer(marker);
+    });
+    allMarkers.clear();
+    selectedVehicle = selectedVehicleBefore;
+
+    @for(MapViewModel.Vehicle v: mapView.vehicles) {
+        var nextStationsHtml = ""
+        @for (MapViewModel.NextStation s : v.nextStations) {
+            nextStationsHtml += "<tr><td>@s.plannedArrival</td>" + buildDelayColumn(@s.estimatedDelay) + "<td>@s.name</td></tr>"
+        }
+
+        var tempMarker = addMarker(map, @v.latitude, @v.longitude, "@v.name", "@v.id", "@v.typeAndTrip", "@v.startDestination", nextStationsHtml, "@v.lastUpdated", @v.secondsSinceLastUpdate, true);
+        tempMarker.vehicleName = "@v.name.toLowerCase()";
+        allMarkers.set( "@v.name.toLowerCase()", tempMarker);
+
+        @if (mapView.mapCenter != null && mapView.mapCenter == v) {
+            selectOnLoadVehicle = "@v.name.toLowerCase()";
+        }
+    }
+
+}
+
+

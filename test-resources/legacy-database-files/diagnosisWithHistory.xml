@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<diagnosisXml last-updated="2019-04-11T16:52:48.232+03:00[Europe/Moscow]">
+    <devices>
+        <device id="66833" location="A128" type="UKR" status="DEFECT" disabled="false">
+            <name>
+                <localeList locale="en" value="UKR2+"/>
+                <localeList locale="de" value="UKR2+"/>
+            </name>
+            <versions software="2.18.49"/>
+            <states>
+                <status start="2018-05-01T18:25:43Z" end="2018-06-01T18:25:43Z" code="-1" category="ERROR">
+                    <message>
+                        <localeList locale="en" value="Timeout"/>
+                        <localeList locale="de" value="Zeituberschreitung"/>
+                    </message>
+                </status>
+                <status code="55" category="NOTE">
+                    <message>
+                        <localeList locale="en" value="Note"/>
+                        <localeList locale="de" value="Note"/>
+                    </message>
+                </status>
+            </states>
+            <error-history>
+                <status start="2018-05-01T18:25:43Z" end="2018-06-01T18:25:43Z" code="-1" category="ERROR">
+                    <message>
+                        <localeList locale="en" value="Timeout"/>
+                        <localeList locale="de" value="Zeituberschreitung"/>
+                    </message>
+                </status>
+                <status start="2018-04-28T03:25Z" end="2018-04-29T17:12Z" code="-1" category="ERROR">
+                    <message>
+                        <localeList locale="en" value="Timeout"/>
+                        <localeList locale="de" value="Zeituberschreitung"/>
+                    </message>
+                </status>
+                <status start="2018-05-01T18:25:43Z" code="-1" category="WARNING">
+                    <message>
+                        <localeList locale="en" value="BrokenLEDs"/>
+                        <localeList locale="de" value="Defekte LEDs"/>
+                    </message>
+                </status>
+            </error-history>
+        </device>
+    </devices>
+</diagnosisXml>

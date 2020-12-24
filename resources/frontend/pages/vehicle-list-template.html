@@ -1,0 +1,87 @@
+@import fleetmanagement.frontend.model.*
+@args VehicleList vm, Security security
+@{List<VehicleList.Vehicle> vehicles = vm.getVehicles();}
+
+<div class="vehicle-category">
+	<h2>@i18n("vehicle_list_vehicles") (<span class="vehicle-counter">@vehicles.size()</span>)</h2>
+	<table class="table">
+		<thead>
+		<tr>
+			<th style="width: 50px">@i18n("vehicle_list_header_status")</th>
+			<th style="width: 200px">@i18n("vehicle_list_vehicle")
+				<a
+						id="sort-vehicles-by-names"
+						onclick='sortVehiclesByNames()'
+						class='btn btn-xs '
+						title='@i18n("vehicle_list_sort")'
+				>
+					<span
+							id="sort-vehicles-by-names-icon"
+							class="glyphicon glyphicon-triangle-top"
+					>
+					</span>
+				</a>
+			</th>
+			<th style="width: 200px">@i18n("vehicle_list_data_supply")</th>
+			<th >@i18n("vehicle_list_installing")</th>
+			<th ></th>
+		</tr>
+		</thead>
+		<tbody>
+		@if(vehicles) {
+			@for(VehicleList.Vehicle v: vehicles) {
+			<tr class="vehicle" onClick="vehicleClick(this)" onmousedown="vehicleMouseDown(this)" ondragstart="dragVehicle(event)" draggable="true">
+				<td>
+					<div class="centered">
+						<div class="vehicle-icon @v.connectionStatusCssClass" title='@i18n("vehicle_last_pos_update"): @v.timeOfLastCommunication'></div>
+						@if (v.showDiagnosticErrorHint) {
+							<div class="vehicle-icon diagnostic-error" title='@i18n("vehicle_list_diagnostic_errors")'></div>
+						}
+					</div>
+				</td>
+				<td class="vehicle-name" name="@v.name" uic="@v.uic" additional-uic="@v.additionalUic">
+					<div>
+						<a id="@v.key" href="/vehicles/@v.key">@v.name</a>
+						<span class="label label-info">@v.groupName</span>
+					</div>
+				</td>
+				<td>@v.dataSupplyVersions</td>
+				<td >
+					@if (v.runningTaskName.length() > 0) {
+					<div class="progress">
+						<div class="progress-bar" style="width: @v.runningTaskProgress%">
+							<span>@v.runningTaskName</span>
+						</div>
+					</div>
+					}
+				</td>
+				<td >
+					@if (v.runningTaskName.length() > 0) {
+						@if(security.hasWritePermission) {
+							<a
+									href="/vehicles/@v.key/cancel-all"
+									class="btn btn-danger button-cancel btn-xs"
+									onclick="return confirmCancel()"
+									title='@i18n("general_cancel")'
+							>
+								<span class="glyphicon glyphicon-stop"></span>
+							</a>
+						} else {
+							<a
+									class="btn btn-default button-cancel btn-xs disabled-link"
+									disabled
+									title='@i18n("permission_denied")'
+							>
+								<span class="glyphicon glyphicon-stop"></span>
+							</a>
+						}
+					}
+				</td>
+			</tr>
+			}
+		} else {
+		<tr><td colspan="4">@i18n("vehicle_list_is_empty")</td></tr>
+		}
+		</tbody>
+	</table>
+</div>

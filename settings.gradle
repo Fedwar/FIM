@@ -1,0 +1,4 @@
+rootProject.name = 'Server'
+
+include ':InfotainmentLib5'
+project(':InfotainmentLib5').projectDir = new File('E:/Work/FIS/svn/GSP/InfotainmentLib5')

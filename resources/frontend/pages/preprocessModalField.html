@@ -1,0 +1,9 @@
+@args String paramId, String labelText, String inputContainerClass
+<div class="form-group modalField">
+	<label for="@paramId" class="col-sm-4 control-label">
+		@i18n(labelText)
+	</label>
+	<div class="col-sm-8 @inputContainerClass">
+		@renderBody()
+	</div>
+</div>

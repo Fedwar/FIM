@@ -1,0 +1,6 @@
+@import fleetmanagement.frontend.model.*;
+@args MapAndGroups vm
+@extends(main, activeNavigation: "/vehicles")
+@{MapViewModel mapView = vm.mapView;}
+<div class="alert alert-warning">@i18n("licence_map_disabled")</div>
+

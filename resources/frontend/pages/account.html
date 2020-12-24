@@ -1,0 +1,243 @@
+@import fleetmanagement.frontend.model.*;
+@args AccountModel vm
+@extends(main)
+
+<script src="/js/save-changes-button-state-switcher.js"></script>
+
+<style>
+.language-dropdown {
+    min-width: 40px;
+}
+.language-flag {
+    width: 30px;
+    border: 1px solid;
+    border-color: #adadad;
+}
+.user-photo {
+    padding-top: 10px;
+    padding-left: 0px;
+    height:300px;
+}
+.user-photo img {
+    max-width:100%;
+    height:auto;
+    padding-top: 0px;
+}
+#photoSection .control-label {
+    text-align: left;
+    width: 100%;
+}
+#photoSection .form-group {
+    margin-right: 0px;
+}
+#language .form-control  {
+    padding: 0px 8px;
+}
+#language a  {
+    padding: 2px 15px;
+}
+.photo-buttons {
+    padding-top: 6px;
+    display: flex;
+    justify-content: space-around;
+}
+.file-select {
+    position:absolute;
+    width:0;
+    height:0
+    opacity:0;
+}
+h3 {
+    margin-top: 0px;
+}
+</style>
+
+@section(sidebar) {
+    <span></span>
+}
+
+<div class="modal fade" id="deletePhoto" tabindex="-1" role="dialog" aria-labelledby="deletePhotoLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @i18n("account_delete_photo_confirmation")
+            </div>
+            <div class="modal-footer">
+                <button type="button" action="ok" onClick="deletePhoto()" class="btn btn-primary" data-dismiss="modal">
+                    @i18n("general_ok")
+                </button>
+                <button type="button" action="cancel" class="btn btn-default" data-dismiss="modal">
+                    @i18n("general_cancel")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<img src="/img/background-administration.png" class="page-watermark" alt="">
+
+<script>
+    function setAccountLanguage(language) {
+        $("#languageImg").attr("src", "/img/" + language + ".png");
+        $.ajax({
+            type: "POST",
+            url: "/account/language/" + language,
+            success: function (response) {
+                window.location.reload();
+            }
+        })
+    }
+
+    function getFormData($form){
+        var unindexed_array = $form.serializeArray();
+        var indexed_array = {};
+
+        $.map(unindexed_array, function(n, i){
+            indexed_array[n['name']] = n['value'];
+        });
+
+        return indexed_array;
+    }
+
+    var viewBeforeUpload = $("#before-upload");
+
+    $(document).ready(function() {
+        viewBeforeUpload.show();
+        $("input[type=file]").change(submitPhoto);
+    });
+
+    function reloadPhoto() {
+        d = new Date();
+        $("#photoImg").attr("src", "/account/photo?"+d.getTime());
+        $("#userPhotoHeader").attr("src", "/account/photo?"+d.getTime());
+    }
+
+    function deletePhoto() {
+        $.ajax({
+            url: '/account/photo',
+            type: 'DELETE',
+            success: function(result) {
+                reloadPhoto();
+            }
+        });
+    }
+
+    function submitPhoto() {
+        $('#photo-name').val($('#photo').val());
+        var filename = $("#photo").val();
+        $("#file-name").text(filename.match(/([^\\/]+)$/)[1]);
+
+        var options = {
+            url: '/account/photo',
+            type: "POST",
+            success: function (response) {
+                reloadPhoto();
+            }
+        };
+        $('#photoForm').ajaxSubmit(options);
+    }
+
+    function saveAccount() {
+        var $form = $("#accountForm");
+        $.ajax({
+            type: "POST",
+            url: "/account",
+            data: JSON.stringify(getFormData($form)),
+            success: function (response) {
+                window.location.reload();
+            }
+        })
+    }
+
+    $(document).on("keyup", function(e) {
+        if (e.key === "Enter" && $(".save-changes-button").prop("disabled") === false)
+            saveAccount();
+    });
+</script>
+
+<script src="/js/jquery.form.min.js"></script>
+
+@{
+String userRoles = String.join(",", security.userRoles);
+}
+
+<h2>@i18n("account_header"): @vm.login</h2>
+<h3>@i18n("account_role"): @userRoles</h3>
+
+<div class="form-horizontal">
+    <div id="photoSection">
+        <div class="user-photo col-sm-3">
+            <img id="photoImg" src="/account/photo"/>
+            <div class="photo-buttons">
+                <form id="photoForm" enctype="multipart/form-data">
+                    <label for="photo" id="selectButton" class="btn btn-default"  title='@i18n("account_upload_photo")'>
+                        <span class='glyphicon glyphicon-folder-open' aria-hidden='true'></span>
+                    </label>
+                    <input class="file-select" type="file" name="photo" id="photo">
+                    <input type="hidden" name="photo-name" id="photo-name">
+                </form>
+                <button class='btn btn-default' type="button" onclick="$('#deletePhoto').modal('show')"
+                        title='@i18n("account_delete_photo")' >
+                    <span class='glyphicon glyphicon-trash' aria-hidden='true'></span>
+                </button>
+            </div>
+        </div>
+        <form id="accountForm" class="user-data col-sm-9">
+            <div class="row">
+                @accountField("accountName", "account_fullName") {
+                <input class="form-control" name="name" id="name" type="text" value="@vm.name" oninput="setSaveChangesButtonState()">
+                }
+                <div class="form-group col-sm-4">
+                    <label for="language"
+                           class="control-label">@i18n('account_language')
+                    </label>
+                    <div class="btn-group" id="language">
+                        <button type="button" class="form-control dropdown-toggle" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">
+                            <img id="languageImg" class="language-flag" src='@getPath(vm.language)'/> <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-right language-dropdown" inputId="language">
+                            @for(String language: vm.availableLanguages) {
+                            <li>
+                                <a href="#" id="@language-link" onclick="setAccountLanguage('@language')">
+                                    <img class="language-flag" src="@getPath(language)"/>
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                @accountField("accountPhone", "account_phone") {
+                <input class="form-control" name="phone" id="phone" type="text" value="@vm.phone" oninput="setSaveChangesButtonState()">
+                }
+                @accountField("accountEmail", "account_email") {
+                <input class="form-control" name="email" id="email" type="text" value="@vm.email" oninput="setSaveChangesButtonState()">
+                }
+            </div>
+            <div class="row">
+                @accountField("accountAddress", "account_address") {
+                <input class="form-control" name="address" id="address" type="text" value="@vm.address" oninput="setSaveChangesButtonState()">
+                }
+                @accountField("accountWebsite", "account_website") {
+                <input class="form-control" id="website" type="text" name="website" value="@vm.website" oninput="setSaveChangesButtonState()">
+                }
+            </div>
+            <div class="row">
+                @accountField("accountTwitter", "account_twitter") {
+                <input class="form-control" id="twitter" type="text" name="twitter" value="@vm.twitter" oninput="setSaveChangesButtonState()">
+                }
+            </div>
+            <div class="row">
+                <button class='btn btn-primary save-changes-button' type="button" onclick="saveAccount()">
+                    @i18n("account_save_button")
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

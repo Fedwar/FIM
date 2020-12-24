@@ -1,0 +1,107 @@
+apply plugin: 'java'
+project.ext.version = project.hasProperty('gspVersion') ? project.gspVersion : "Developer Build"
+project.ext.project = project.hasProperty('gspProject') ? project.gspProject : "Premium"
+
+sourceSets.main.java.srcDirs = ["src"]
+sourceSets.main.resources.srcDirs = [
+        "resources",
+        "resources/frontend",
+        "resources/frontend/css",
+        "resources/frontend/js",
+        "projects/${project.ext.project}"
+]
+sourceSets.test.java.srcDirs = ["tst", "test-suites", "tempTests"]
+sourceSets.test.resources.srcDirs = ["resources", "test-resources", "projects/Premium"]
+sourceSets.test.resources.excludes = ['Handtests/**', 'MoveOnDV-Meridian/**']
+
+if (!file("projects/${project.ext.project}").exists())
+    throw new GradleException("Invalid project: ${project.ext.project}");
+
+//if (!file("projects/${project.ext.project}/fim.ini").exists())
+//    throw new GradleException("Project is missing fim.ini!");
+
+dependencies {
+
+    implementation project(':InfotainmentLib5')
+
+    compileOnly 'org.projectlombok:lombok:1.18.16'
+    annotationProcessor 'org.projectlombok:lombok:1.18.16'
+
+    implementation 'org.glassfish.grizzly:grizzly-http-all:2.2.16'
+    implementation 'org.springframework:spring-context:5.2.8.RELEASE'
+
+    //persistence
+    implementation 'org.hibernate:hibernate-core:4.3.11.Final'
+    implementation 'com.enigmabridge:hibernate4-sqlite-dialect:0.1.2'
+    implementation 'org.xerial:sqlite-jdbc:3.23.1'
+
+    implementation 'com.google.code.gson:gson:2.3'
+    implementation 'net.sourceforge.htmlcleaner:htmlcleaner:2.13'
+    implementation 'org.ocpsoft.prettytime:prettytime:3.2.7.Final'
+    //template engine
+    implementation group:'org.rythmengine', name:'rythm-engine', version:'1.3.0', transitive: true
+    //security and sessions
+    implementation 'org.apache.shiro:shiro-all:1.3.2'
+
+    //Microsoft formats
+    implementation group:'org.apache.poi', name:'poi-ooxml', version:'4.0.1', transitive: true
+
+    implementation 'javax.mail:mail:1.4.5'
+
+    implementation 'org.slf4j:slf4j-api:1.7.22'
+    implementation 'org.slf4j:slf4j-log4j12:1.7.22'
+
+    //from infotainment
+//    implementation 'com.sun.jersey:jersey-bundle:1.19'
+//    implementation 'com.sun.jersey:jersey-grizzly2:1.19'
+//    implementation 'com.sun.jersey.contribs:jersey-multipart:1.19'
+//    implementation 'log4j:log4j:1.2.17'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.16'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:3.0.0'
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+    testImplementation 'com.icegreen:greenmail:1.5.9'
+    testImplementation 'org.objenesis:objenesis:2.6'
+    testImplementation 'io.takari.junit:takari-cpsuite:1.2.7'
+}
+
+jar {
+    manifest {
+        attributes("Implementation-Version": project.ext.version)
+    }
+}
+
+task packageTestResults(type: Zip) {
+    archiveName = "Test Results - Unit tests.zip"
+    destinationDir = file("$buildDir/dist")
+    from "$buildDir/reports/tests/test"
+}
+
+test {
+    filter {
+        includeTestsMatching "fleetmanagement.*"
+    }
+    finalizedBy packageTestResults
+}
+
+repositories {
+    mavenCentral()
+}
+
+task deleteTestLibs() {
+    doLast {
+        delete fileTree(dir: "$buildDir/libs/lib", include: ['**/*clover-idea*', '**/*greenmail*'])
+    }
+}
+
+task copyLibs(type: Copy) {
+    into "$buildDir/libs/lib"
+    from configurations.runtimeClasspath
+}
+
+build.dependsOn(copyLibs)
+copyLibs.finalizedBy deleteTestLibs
+

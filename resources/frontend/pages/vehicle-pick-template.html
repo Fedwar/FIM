@@ -1,0 +1,45 @@
+@import fleetmanagement.frontend.model.*
+@args VehicleGroupMap vm, boolean hasPermission, String prefix
+@{Map<String, List<VehicleGroupMap.VehicleDTO>> vehicleMap = vm.getVehiclesByGroup();}
+@{String mayBeDisabled = hasPermission ? "" : "disabled"}
+
+<div @if(!hasPermission) { class="disabled-link" title='@i18n("permission_denied")' }>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th style="width: 24px; font-weight: normal !important;">
+                <input type="checkbox" class="select-all" @mayBeDisabled>
+                @i18n("general_select_all")
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @for(String groupName: vehicleMap.keySet()) {
+        <tr>
+            <td style="padding-left: 24px">
+                <input type="checkbox" data-group-id="@prefix-@groupName" name="groups" @mayBeDisabled>
+                @if (groupName.equals("")) {
+                    @i18n("group_no_group")
+                } else {
+                    @groupName
+                }
+            </td>
+        </tr>
+        @for(VehicleGroupMap.VehicleDTO v: vehicleMap.get(groupName)) {
+        <tr>
+            <td style="padding-left: 48px">
+                <input
+                        type="checkbox"
+                        data-group="@prefix-@groupName"
+                        name="vehicles"
+                        value="@v.id"
+                        @mayBeDisabled
+                >
+                @v.name
+            </td>
+        </tr>
+        }
+        }
+        </tbody>
+    </table>
+</div>

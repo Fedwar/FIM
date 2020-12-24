@@ -1,0 +1,96 @@
+{
+  "components": [
+    {
+      "id": "66833",
+      "type": "UKR",
+      "location": "A128",
+      "name": {
+        "en": "UKR2+",
+        "de": "UKR2+"
+      },
+      "status": "Defect",
+      "states": [
+        {
+          "type": "Error",
+          "code": -23,
+          "description": {
+            "en": "CommunicationTimeout",
+            "de": "Verbindungsfehler"
+          }
+        }
+      ],
+      "status_history": [
+        {
+          "type": "Error",
+          "code": -1,
+          "description": {
+            "en": "Timeout",
+            "de": "Zeituberschreitung"
+          },
+          "started": "2018-05-01T18:25:43Z",
+          "ended": "2018-06-01T18:25:43Z"
+        },
+        {
+          "type": "Error",
+          "code": -1,
+          "description": {
+            "en": "Timeout",
+            "de": "Zeituberschreitung"
+          },
+          "started": "2018-04-28T03:25:00Z",
+          "ended": "2018-04-29T17:12:00Z"
+        }
+      ],
+      "versions": {
+        "counterApp": "10.1.0.0",
+        "firmware": "1.0.1.1",
+        "fpga": "16.9.0.0",
+        "imgProc": "6.0.2.0",
+        "kernel": "3.2.34.0",
+        "release": "3.10.0.12",
+        "subKernel": "2.0.0.0"
+      }
+    },
+    {
+      "id": "781ex",
+      "type": "Side LED Display",
+      "name": {
+        "en": "LED-Side (7)",
+        "de": "LED Seite (7)"
+      },
+      "location": null,
+      "status": "Degraded",
+      "states": [
+        {
+          "type": "Warning",
+          "code": -1,
+          "description": {
+            "en": "BrokenLEDs",
+            "de": "Defekte LEDs"
+          }
+        }
+      ],
+      "status_history": [
+        {
+          "type": "Warning",
+          "code": -1,
+          "description": {
+            "en": "BrokenLEDs",
+            "de": "Defekte LEDs"
+          },
+          "started": "2018-05-01T18:25:43Z",
+          "ended": null
+        }
+      ],
+      "versions": {
+        "software": "LDIZ2AC8",
+        "font": "1.34A"
+      }
+    },
+    {
+      "id": "53tx",
+      "status": "Works correctly",
+      "type": "Side LED Display"
+    }
+  ]
+}

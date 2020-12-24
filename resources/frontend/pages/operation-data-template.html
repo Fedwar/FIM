@@ -1,0 +1,52 @@
+@import fleetmanagement.frontend.model.*
+@args OperationDataModel vm
+
+<table class="table table-condensed">
+    <thead>
+    <tr>
+        <th>@i18n("operation_data_indicator_name")</th>
+        <th>@i18n("operation_data_indicator_value")</th>
+        <th>@i18n("operation_data_indicator_unit")</th>
+        <th style="width:50px">@i18n("operation_data_indicator_updated")</th>
+        <th style="width: 24px"></th>
+    </tr>
+    </thead>
+    <tbody>
+    @if(vm.indicators) {
+    @for(OperationDataModel.Indicator indicator: vm.indicators) {
+    <tr class="indicator">
+        <td>@indicator.id</td>
+        <td class="nowrap">@indicator.value</td>
+        <td class="nowrap">@indicator.unit</td>
+        <td class="nowrap">@indicator.updated.format("medium-datetime")</td>
+        <td>
+            <div class="buttons">
+                <a href="@vm.vehicleId/indicator/@indicator.id" class="btn btn-default btn-xs"
+                   title='@i18n("operation_data_indicator_history")'>
+                    <span class="glyphicon glyphicon-time"></span>
+                </a>
+                <a class="btn btn-default btn-xs" indicator="@indicator.id"
+                   title='@i18n("operation_data_edit_widget")' onClick="editWidget(this)">
+                    <span class="glyphicon glyphicon-cog"></span>
+                </a>
+                <a class="btn btn-default btn-xs saveWidgetBtn" indicator="@indicator.id"
+                   title='@i18n("operation_data_download_widget")' onClick="saveAsImage(this)">
+                    <span class="glyphicon glyphicon-save"></span>
+                </a>
+            </div>
+        </td>
+    </tr>
+    }
+    } else {
+    <tr>
+        <td colspan="2"></td>
+        <td>@i18n("operation_data_not_available")</td>
+    </tr>
+    }
+    </tbody>
+</table>
+
+
+
+
+

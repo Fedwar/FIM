@@ -1,0 +1,124 @@
+@import fleetmanagement.frontend.model.*
+@import fleetmanagement.frontend.languages.Languages;
+@args String activeNavigation, Security security, Languages languages
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <link href="/css/bootstrap/bootstrap.min.css" type="text/css" rel="stylesheet"/>
+    <link href="/css/bootstrap/bootstrap-theme.min.css" type="text/css" rel="stylesheet"/>
+    <link href="/css/bootstrap/bootstrap-custom.css" type="text/css" rel="stylesheet"/>
+    <link href="/css/generic.css" type="text/css" rel="stylesheet"/>
+    <link href="/css/header.css" type="text/css" rel="stylesheet"/>
+    <link href="/css/sidebar.css" type="text/css" rel="stylesheet"/>
+    <link href="/css/jquery.webuiPopover.min.css" type="text/css" rel="stylesheet">
+    <link href="/css/jquery-ui.min.css" type="text/css" rel="stylesheet">
+    <title>GSP @i18n("general_fleet_management_system")</title>
+    <script src="/js/jquery-1.12.4.min.js"></script>
+    <script src="/js/jquery.webui-popover.min.js"></script>
+    <script src="/js/jquery-ui.min.js"></script>
+    <script src="/js/bootstrap/bootstrap.min.js"></script>
+    <script src="/js/main.js"></script>
+    @render(pagescripts)
+</head>
+<header>
+    <div class="gsp-logo"></div>
+    <div class="headerTitle">
+        <h1>@i18n("general_fleet_management_system")</h1>
+
+    </div>
+    <nav id="primary-navigation">
+        @def String getPath(String language) {
+            return "/img/" + language + ".png";
+        }
+
+
+        <a
+            class="menu-item dropdown-toggle pull-right"
+            id="user-drop-down-menu"
+            data-toggle="dropdown"
+            onclick="switchUserDropDownMenuItemsDisplay()"
+        >
+            @if (security.username != null) {
+
+            <div class="header-user-photo">
+                <div><img id="userPhotoHeader" src="/account/photo"/></div>
+            </div>
+            @security.username
+            } else {
+                <span class="glyphicon glyphicon-user"></span>
+            }
+            <span class="caret"></span>
+        </a>
+
+        @if (security.username == null) {
+        <div class="language-flags  pull-right">
+            @if(languages.getLanguages()) {
+            @{
+            String currentLanguage = __i18n("local");
+            }
+            @for(String language: languages.getLanguages()) {
+            @if(language.equals(currentLanguage)) {
+            <img src="@getPath(language)" class="language-flag active" data-language="@language" />
+            } else {
+            <a href="#" type="button" onclick="changeLanguage('@language')">
+                <img src="@getPath(language)" class="language-flag" data-language="@language"/>
+            </a>
+            }
+            }
+            }
+        </div>
+        }
+
+        @def renderNavigation(String url, String intKey) {
+        @assign("name"){@i18n(intKey)}
+        @if (activeNavigation.equalsIgnoreCase(url)) {
+        <a href="@url" class="menu-item active">@name</a>
+        } else {
+        <a href="@url" class="menu-item">@name</a>
+        }
+        }
+        @renderNavigation("/dashboard", "general_dashboard")
+        @renderNavigation("/vehicles", "general_vehicles")
+        @renderNavigation("/packages", "general_packages")
+        @renderNavigation("/admin", "general_administration")
+        @renderNavigation("/about", "general_about")
+        <script>
+			function changeLanguage(language) {
+				$.ajax({
+					type: "POST",
+					url: "/language/" + language,
+					success: function (response) {
+						window.location.reload()
+					}
+				})
+			}
+        </script>
+    </nav>
+</header>
+<body>
+<div id="content-container">
+    <aside class="sidebar">
+        @render(sidebar)
+    </aside>
+
+    <main>
+        <ul id="user-drop-down-menu-items" class="dropdown-menu dropdown-menu-right">
+            <li>
+                @if (security.username != null) {
+                <a href="/account">
+                    <span class="glyphicon glyphicon-user"></span> @i18n("account_link")
+                </a>
+                }
+                <a href="/login/logout">
+                    <span class="glyphicon glyphicon-off"></span> @i18n("login_perform_logout")
+                </a>
+            </li>
+        </ul>
+        @render()
+    </main>
+</div>
+</body>
+</html>

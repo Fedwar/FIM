@@ -1,0 +1,191 @@
+@import fleetmanagement.frontend.model.*
+@args VehicleDetails vm, Security security
+@extends(main, activeNavigation: "/vehicles")
+@{VehicleDetails vehicleDetails = vm;}
+
+<link href="/css/selection-form.css" type="text/css" rel="stylesheet"/>
+
+<script src="/js/leaflet/leaflet.js"></script>
+<script src="/js/vehicle-details.js"></script>
+
+<link href="/css/leaflet/leaflet.css" type="text/css" rel="stylesheet" />
+<link href="/css/vehicle-details.css" type="text/css" rel="stylesheet"/>
+
+@invoke("status-message", vehicleDetails.message)
+
+@if (vehicleDetails.installPackageModal != null) {
+	@invoke("vehicle-install-package", vehicleDetails.installPackageModal)
+}
+
+@group_selection_form_dialog()
+
+@section(sidebar) {
+	<h2>@i18n("general_view")</h2>
+	<a href='/vehicles/@vehicleDetails.id/tasks'>@i18n("vehicle_show_all_tasks")</a>
+	@if (vehicleDetails.showDiagnosis) {
+		<a href='/vehicles/@vehicleDetails.id/diagnosis'>@i18n("vehicle_show_diagnosis")</a>
+	}
+	@if (vehicleDetails.showOperationInfo) {
+		<a href='/operation-data/@vehicleDetails.id'>@i18n("vehicle_show_operation_data")</a>
+	}
+
+	<h2>@i18n("general_actions")</h2>
+
+	<div @if(!security.hasWritePermission) { class="disabled-link" title='@i18n("permission_denied")' }>
+		<a
+				@if(!security.hasVehicleDeletePermission) {
+					class="disabled-link"
+					title='@i18n("permission_denied")'
+				} else {
+					class="delete-button"
+					href='/vehicles/@vehicleDetails.id/delete'
+				}
+		>
+			@i18n("delete_vehicle")
+		</a>
+		<a href='/vehicles/@vehicleDetails.id/install-package'>@i18n("vehicle_install_package")</a>
+		<a
+				id="assign-vehicle-to-vehicle-groups"
+				@if(!security.hasVehicleGroupChangePermission) {
+					class="disabled-link"
+					title='@i18n("permission_denied")'
+				} else {
+					href="#"
+					onclick='createGroupSelectionFormDialog(
+							"assign",
+							"vehicle",
+							"@vehicleDetails.id",
+							"@vehicleDetails.name",
+							"@vehicleDetails.groupsForAssigning.entrySet()",
+							"@i18n("vehicle_details_assign_to_vehicle_group")",
+							"@i18n("group_selection_form_confirm_assigning_vehicle_dialog_title")",
+							"@i18n("group_selection_form_confirm_dialog_selected_vehicle")"
+					)'
+				}
+		>
+			@i18n("vehicle_details_assign_to_vehicle_group")
+		</a>
+	</div>
+	@if (vm.groupId != null) {
+		<div @if(!security.hasVehicleGroupChangePermission) { class="disabled-link" title='@i18n("permission_denied")' }>
+			<a id="actions.unassign" href="#" data-toggle="modal" data-target="#unassignDialog">@i18n("vehicle.actions.unassign")</a>
+		</div>
+	}
+}
+
+@if (vehicleDetails.showGeo) {
+<div class="vehicle-location">
+	<div class="location-unknown" style="display: none;">
+		<img src="/img/location-unknown.png" alt="">
+		<div class="not-found-message">@i18n("vehicle_location_unknown")</div>
+	</div>
+	<div class="map-location" style="display: none;">
+		<div id="map"></div>
+	</div>
+	<div class="last-updated">@vehicleDetails.lastLiveInfoUpdate</div>
+	<div class="route-information">@vehicleDetails.routeInformation</div>
+</div>
+}
+
+<div id="vehicle-info" data-url="/vehicles/@vehicleDetails.id/ajax/info">
+	@invoke("vehicle-details-info-template", vehicleDetails, security)
+</div>
+
+<div class="clear"></div>
+
+<div id="vehicle-data" data-url="/vehicles/@vehicleDetails.id/ajax/data">
+	@invoke("vehicle-details-data-template", vehicleDetails, security)
+</div>
+
+<div class="modal fade" id="editNameDialog" vehicleId="@vehicleDetails.id" tabindex="-1" role="dialog" aria-labelledby="editNameDialogLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="editNameDialogLabel">@i18n("vehicle_name_edit")</h4>
+			</div>
+			<div class="modal-body">
+				<label>@i18n("vehicle_id"): @vehicleDetails.uic</label>
+				<form id="editVehicleNameForm" class="form-horizontal" onsubmit="editVehicleName(event)">
+					<div class="form-group">
+						<div class="col-md-12">
+							<input type="text" class="form-control" id="editVehicleNameInput" value="@vehicleDetails.name">
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button
+						type="button"
+						id="editVehicleNameButton"
+						class="btn btn-primary"
+						data-dismiss="modal"
+						onclick='$("#editVehicleNameForm").trigger("submit")'
+				>
+					@i18n("general_ok")
+				</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">@i18n("general_cancel")</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="unassignDialog" tabindex="-1" role="dialog" aria-labelledby="unassignDialogLabel">
+	<div class="modal-dialog modal-sm" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="unassignDialogLabel">@i18n("vehicle.actions.unassign")</h4>
+			</div>
+			<div class="modal-body">
+				<span>@i18n("vehicle.actions.unassign.confirm", vm.groupName)</span>
+			</div>
+			<div class="modal-footer">
+				<button
+						type="button"
+						id="unassignButton"
+						class="btn btn-primary"
+						onclick="unassign('@vm.id')"
+						data-dismiss="modal">@i18n("general_ok")</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">@i18n("general_cancel")</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	$(".delete-button").on("click", function() {
+		return window.confirm('@i18n("delete_vehicle_question")');
+	});
+
+	@invoke("selection-form.js")
+	@invoke("autoUpdate.js", "ignored" )
+
+	var map;
+	var marker;
+	initMap();
+	refreshMap();
+
+	function initMap() {
+		if ($('#map').length) {
+			map = new L.Map('map', { zoomControl:false, fadeAnimation:false });
+			var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+			var osm = new L.TileLayer(osmUrl, {minZoom: 11, maxZoom: 11, attribution: null});
+			map.addLayer(osm);
+		}
+	}
+
+	function autoUpdateOverride() {
+		$autoUpdateContainer = $("#vehicle-data");
+		autoUpdateUrl = $autoUpdateContainer.data("url");
+		$autoUpdateContainer.load(autoUpdateUrl, function(responseText, textStatus) {
+		});
+		var $autoUpdateContainer = $("#vehicle-info");
+		var autoUpdateUrl = $autoUpdateContainer.data("url");
+		$autoUpdateContainer.load(autoUpdateUrl, function(responseText, textStatus) {
+			refreshMap();
+		});
+	}
+</script>

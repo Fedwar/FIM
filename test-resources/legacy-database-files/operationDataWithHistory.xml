@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<operation-data vehicle-id="9fb1e180-2cc6-4245-9da6-10021b07708a"
+                updated="2019-02-28T16:59:13.710+03:00[Europe/Moscow]">
+    <indicatorNames>
+        <indicator id="dieseltank1" unit="liter" value="2330" valueClass="java.lang.String"
+                   last-updated="2019-02-28T16:59:13.710+03:00[Europe/Moscow]">
+            <history>
+                <entry value="2330" valueClass="java.lang.String"
+                       timeStamp="2019-02-28T16:59:13.71+03:00[Europe/Moscow]"/>
+            </history>
+        </indicator>
+        <indicator id="dieseltank2" unit="liter" value="65" valueClass="java.lang.String"
+                   last-updated="2019-02-28T16:59:13.710+03:00[Europe/Moscow]">
+            <history>
+                <entry value="65" valueClass="java.lang.String"
+                       timeStamp="2019-02-28T16:59:13.71+03:00[Europe/Moscow]"/>
+            </history>
+        </indicator>
+        <indicator id="clima_temp_A" unit="celsius" value="23.5" valueClass="java.lang.Double"
+                   last-updated="2019-02-28T16:59:13.710+03:00[Europe/Moscow]">
+            <history>
+                <entry value="23.5" valueClass="java.lang.Double"
+                       timeStamp="2019-02-28T16:59:13.71+03:00[Europe/Moscow]"/>
+            </history>
+        </indicator>
+        <indicator id="clima_temp_B" unit="celsius" value="-1" valueClass="java.lang.String"
+                   last-updated="2019-02-28T16:59:13.710+03:00[Europe/Moscow]">
+            <history>
+                <entry value="-1" valueClass="java.lang.String"
+                       timeStamp="2019-02-28T16:59:13.71+03:00[Europe/Moscow]"/>
+            </history>
+        </indicator>
+        <indicator id="today_travelled" unit="km" value="241.0" valueClass="java.lang.Double"
+                   last-updated="2019-02-28T16:59:13.710+03:00[Europe/Moscow]">
+            <history>
+                <entry value="241.0" valueClass="java.lang.Double"
+                       timeStamp="2019-02-28T16:59:13.71+03:00[Europe/Moscow]"/>
+            </history>
+        </indicator>
+        <indicator id="display_powersafe" unit="" value="false" valueClass="java.lang.Boolean"
+                   last-updated="2019-02-28T16:59:13.710+03:00[Europe/Moscow]">
+            <history>
+                <entry value="false" valueClass="java.lang.Boolean"
+                       timeStamp="2019-02-28T16:59:13.71+03:00[Europe/Moscow]"/>
+            </history>
+        </indicator>
+    </indicatorNames>
+</operation-data>

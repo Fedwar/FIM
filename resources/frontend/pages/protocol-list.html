@@ -1,0 +1,67 @@
+@import fleetmanagement.frontend.model.*;
+@extends(admin, activeNavigation: "/https", activeSidebarItem: "protocol_config_title")
+@args ProtocolList vm
+
+<style>
+	.head-port {
+		width: 100px;
+	}
+	.head-state {
+		width: 100px; text-align: center;
+	}
+	.head-vc {
+		width: 100px; text-align: right;
+	}
+	.body-state {
+		text-align: center;
+	}
+	.body-vc {
+		text-align: right;
+	}
+</style>
+
+@if (!vm.licence.isHttpsAvailable()) {
+<div class="section">@i18n("licence_https_addon_no_licence")</div>
+@return
+}
+
+<div class="section">
+
+    <h2>@i18n("protocol_config_title")</h2>
+	<table class="table">
+		<thead>
+		<tr>
+			<th>@i18n("protocol_list_name")</th>
+			<th class="head-port">@i18n("protocol_list_port")</th>
+			<th class="head-state">@i18n("protocol_list_state")</th>
+			<th class="head-vc">@i18n("protocol_list_vehicle_count")</th>
+		</tr>
+		</thead>
+		<tbody>
+			@for(ProtocolList.ProtocolItem p: vm) {
+			<tr>
+				<td>
+					<div>
+						<a href="/https/@p.index">@p.name</a>
+					</div>
+				</td>
+				<td>
+					@p.port
+				</td>
+				<td class="body-state">
+					@if (p.enabled) {
+					<img src="/img/success.png">
+					} else {
+					<img src="/img/error.png">
+					}
+				</td>
+				<td class="body-vc">
+					@p.vehicleCount
+				</td>
+			</tr>
+			}
+		</tbody>
+	</table>
+</div>
+
+

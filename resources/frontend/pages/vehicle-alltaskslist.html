@@ -1,0 +1,45 @@
+@import fleetmanagement.frontend.model.*
+@args VehicleTaskList vm
+@extends(main, activeNavigation: "/vehicles")
+@{VehicleTaskList taskList = vm;}
+
+<link href="/css/task-table.css" type="text/css" rel="stylesheet"/>
+
+@section(sidebar) {
+	<h2>@i18n("general_view")</h2>
+	<a href='/vehicles/@taskList.vehicleId'>@i18n("vehicle_tasks_vehicle_details")</a>
+}
+
+<h2>@i18n("vehicle_tasks_header-vehicle", taskList.vehicleDescription)</h2>
+
+<table class="table">
+	<thead>
+	<tr>
+		<th>@i18n("vehicle_tasks_status")</th>
+		<th >@i18n("vehicle_tasks_started")</th>
+		<th >@i18n("vehicle_tasks_completed")</th>
+		<th>@i18n("vehicle_tasks_package")</th>
+		<th></th>
+	</tr>
+	</thead>
+	<tbody>
+	@if(taskList) {
+		@for(VehicleTaskList.Task task: taskList) {
+		<tr>
+			<td style="width: 24px"><div class="status-icon @task.statusCssClass" title="@task.status"></div></td>
+			<td class="nowrap ">@task.startDate.format("short-datetime")</td>
+			<td class="nowrap ">@task.completionDate.format("short-datetime")</td>
+			<td><a href="/packages/@task.packageId">@task.packageName</a></td>
+			<td align="right">
+				<a href="/vehicles/@taskList.vehicleId/tasks/@task.taskId" class="btn btn-xs btn-default" title="@i18n("tasks_logs")"><span class="glyphicon glyphicon-list"></span></a>
+			</td>
+		</tr>
+		}
+	} else {
+		<tr>
+			<td colspan="2"></td>
+			<td>@i18n("vehicle_tasks_is_empty")</td>
+		</tr>
+	}
+	</tbody>
+</table>
